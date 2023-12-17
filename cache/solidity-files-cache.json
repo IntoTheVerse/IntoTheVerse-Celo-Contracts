@@ -74,8 +74,8 @@
       ]
     },
     "/Users/sagarbehara/Work/chiliz/playground/itv/IntoTheVerse-Celo-Contracts/contracts/Avatar.sol": {
-      "lastModificationDate": 1702816747125,
-      "contentHash": "32fff98b3132d692f1b630aea8ff1e3b",
+      "lastModificationDate": 1702817598780,
+      "contentHash": "f78e5aac0404c03759a74747559c4c37",
       "sourceName": "contracts/Avatar.sol",
       "solcConfig": {
         "version": "0.8.20",

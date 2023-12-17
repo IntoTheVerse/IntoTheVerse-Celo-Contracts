@@ -8,6 +8,7 @@ import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
 contract Avatar is Ownable, ERC721Enumerable {
 
     using Strings for uint256;
+
     // baseURI is default avatar image
     string public _baseTokenURI;
 
@@ -16,6 +17,7 @@ contract Avatar is Ownable, ERC721Enumerable {
         string image; // Assuming the image is a string URI, you can modify this based on your requirements
         uint256 xp;
         bool isParticipatingInRef;
+        address ownerAddress; // Add owner address to AvatarInfo
     }
 
     // Mapping to store equipment for each tokenId
@@ -27,13 +29,14 @@ contract Avatar is Ownable, ERC721Enumerable {
     // Mapping to store information about each avatar
     mapping(uint256 => AvatarInfo) public avatars;
 
+    mapping(address => bool) public _hasMintedAvatar; // Mapping to track whether an address has already
 
     constructor(string memory baseURI) Ownable(msg.sender) ERC721("AVATAR", "ITVA") {
         setBaseURI(baseURI);
     }
 
     /**
-     * @dev _baseURI overides the Openzeppelin's ERC721 implementation which by default
+     * @dev _baseURI overrides the Openzeppelin's ERC721 implementation which by default
      * returned an empty string for the baseURI
      */
     function getDefaultImage() public view returns (string memory) {
@@ -48,18 +51,19 @@ contract Avatar is Ownable, ERC721Enumerable {
         _baseTokenURI = _uri;
     }
 
-    function mint(string memory image) external onlyOwner {
-        // Mint new Avatar NFT
+    function mint(string memory image) external {
+        require(!_hasMintedAvatar[msg.sender], "You already have an avatar");
+        // Mint new Avatar NFT to the owner
         uint256 tokenId = totalSupply() + 1;
         _safeMint(msg.sender, tokenId);
 
         // Store information about the avatar
-        avatars[tokenId] = AvatarInfo(tokenId, image, 0, false);
+        avatars[tokenId] = AvatarInfo(tokenId, image, 0, false, msg.sender);
     }
 
-    function changeAvatarImage(uint256 tokenId, string memory newImage) external onlyOwner {
-        // Ensure the avatar exists
-        require(avatars[tokenId].tokenId == tokenId, "Avatar does not exist");
+    function changeAvatarImage(uint256 tokenId, string memory newImage) external {
+        // Ensure the caller is the owner of the avatar
+        require(msg.sender == avatars[tokenId].ownerAddress, "Not the owner");
 
         // Change the avatar image
         avatars[tokenId].image = newImage;
