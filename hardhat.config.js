@@ -7,5 +7,25 @@ require("./tasks/faucet");
 
 /** @type import('hardhat/config').HardhatUserConfig */
 module.exports = {
-  solidity: "0.8.17",
+  solidity: {
+    compilers: [
+      { version: "0.4.18" },
+      { version: "0.5.1" },
+      { version: "0.5.16" },
+      {
+        version: "0.6.6",
+        settings: {
+          optimizer: {
+            enabled: true,
+            runs: 1000
+          }
+        }
+      },
+      { version: "0.7.6" },
+      { version: "0.8.0" },
+      { version: "0.8.9" },
+      { version: "0.8.17" },
+      { version: "0.8.20" }
+    ]
+  },
 };

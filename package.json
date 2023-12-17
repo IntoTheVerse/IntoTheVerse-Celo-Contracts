@@ -9,7 +9,7 @@
     "type": "git",
     "url": "git+https://github.com/NomicFoundation/hardhat-boilerplate.git"
   },
-  "author": "Nomic Foundation",
+  "author": "SAGAR",
   "license": "MIT",
   "bugs": {
     "url": "https://github.com/NomicFoundation/hardhat-boilerplate/issues"
@@ -30,9 +30,13 @@
     "solidity-coverage": "^0.8.2"
   },
   "dependencies": {
+    "@openzeppelin/contracts": "^5.0.1",
+    "@openzeppelin/contracts-upgradeable": "^5.0.1",
     "@typechain/ethers-v5": "^10.1.0",
     "@typechain/hardhat": "^6.1.2",
     "@types/mocha": ">=9.1.0",
+    "@uniswap/v2-periphery": "^1.1.0-beta.0",
+    "erc721a": "^4.2.3",
     "ts-node": ">=8.0.0",
     "typechain": "^8.1.0",
     "typescript": ">=4.5.0"
