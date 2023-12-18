@@ -14,7 +14,6 @@ contract TreeContract is Ownable, ERC721A {
     }
 
     uint256 public cost = 0 ether; // Mint price.
-    uint256 public constant maxLevel = 10; // Maximum level.
     uint256 public constant decayRate = 1; // Decaying by 1 level for simplicity.
     uint256 public constant maxSupply = 10000;
     uint256 public constant decayPeriod = 1 weeks; // Decay period of 1 week.

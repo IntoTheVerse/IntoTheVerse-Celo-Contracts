@@ -10,9 +10,15 @@ contract MockUniswapV2Router {
         address[] memory path,
         address to,
         uint256 deadline
-    ) external {
+    ) external returns (uint256[] memory) {
         require(minAmountOut < 10000000000 ether, "minAmountOut");
         require(deadline >= 0, "Invalid deadline");
-        return MockERC20(path[path.length - 1]).mint(to, amountIn);
+        MockERC20(path[path.length - 1]).mint(to, amountIn);
+        uint256[] memory amountOuts = new uint256[](path.length);
+        for (uint256 i = 0; i < path.length; i++) {
+            amountOuts[i] = 0;
+        }
+        amountOuts[amountOuts.length - 1] = amountIn;
+        return amountOuts;
     }
 }
