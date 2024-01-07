@@ -5,54 +5,27 @@ import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 import {ReentrancyGuard} from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 import {ERC721Upgradeable} from "@openzeppelin/contracts-upgradeable/token/ERC721/ERC721Upgradeable.sol";
 
-import {TreeContract} from "./TreeContract.sol";
-
 contract RetirementCertificateEscrow is Ownable, ReentrancyGuard {
     /* ========== STATE VARIABLES ========== */
     struct UserRetirementCertificate {
-        uint256 tree;
-        uint256 retirementCertificate;
+        uint256 tokenId;
         bool claimed;
-        uint256 index;
     }
 
     address public greenDonation;
 
-    mapping(uint256 => UserRetirementCertificate[])
+    mapping(address => UserRetirementCertificate[])
         public userRetirementCertificates;
 
-    TreeContract public treeContract;
     ERC721Upgradeable public retirementCertificate;
 
     constructor() Ownable(msg.sender) {}
-
-    modifier onlyTreeOwner(uint256 tree, address account) {
-        require(treeContract.ownerOf(tree) == account, "Not tree owner");
-        _;
-    }
-
-    modifier onlyGreenDonation(address caller) {
-        require(caller == greenDonation, "Caller not GreenDonation");
-        _;
-    }
-
-    modifier notGreenDonation(address caller) {
-        require(caller != greenDonation, "Caller GreenDonation");
-        _;
-    }
 
     function setGreenDonation(
         address _greenDonation
     ) external onlyOwner nonReentrant {
         emit SetGreenDonation(greenDonation, _greenDonation);
         greenDonation = _greenDonation;
-    }
-
-    function setTreeContract(
-        address _treeContract
-    ) external onlyOwner nonReentrant {
-        emit SetGreenDonation(address(treeContract), _treeContract);
-        treeContract = TreeContract(_treeContract);
     }
 
     function setRetirementCertificate(
@@ -66,83 +39,63 @@ contract RetirementCertificateEscrow is Ownable, ReentrancyGuard {
     }
 
     function registerCertificateForClaim(
-        uint256 tree,
-        uint256 _retirementCertificate
-    ) external nonReentrant onlyGreenDonation(msg.sender) {
+        address account,
+        uint256 tokenId
+    ) external nonReentrant {
+        require(msg.sender == greenDonation, "Caller not GreenDonation");
         UserRetirementCertificate
             memory certificate = UserRetirementCertificate({
-                retirementCertificate: _retirementCertificate,
-                claimed: false,
-                tree: tree,
-                index: userRetirementCertificates[tree].length
+                tokenId: tokenId,
+                claimed: false
             });
-        userRetirementCertificates[tree].push(certificate);
-        emit AttachCertificateForClaim(_retirementCertificate, tree);
+        userRetirementCertificates[account].push(certificate);
+        emit AttachCertificateForClaim(tokenId, account);
     }
 
     function claimRetirementCertificate(
-        uint256 tree,
-        uint256[] memory userRetirementCertificatesIndexes
-    )
-        external
-        nonReentrant
-        onlyTreeOwner(tree, msg.sender)
-        notGreenDonation(msg.sender)
-    {
+        uint256[] memory retirementCertificates
+    ) external nonReentrant {
         require(msg.sender != greenDonation, "GreenDonation cannot claim");
 
         UserRetirementCertificate[]
-            storage certificates = userRetirementCertificates[tree];
+            storage certificates = userRetirementCertificates[msg.sender];
 
         require(certificates.length > 0, "No certificate found");
         require(
-            userRetirementCertificatesIndexes.length > 0,
+            retirementCertificates.length > 0,
             "No certificate claim requested"
         );
 
-        for (uint256 i = 0; i < userRetirementCertificatesIndexes.length; i++) {
-            // Fetch index.
-            uint256 index = userRetirementCertificatesIndexes[i];
-
+        for (uint256 i = 0; i < retirementCertificates.length; i++) {
             // Fetch the certificate.
-            UserRetirementCertificate memory certificate = certificates[index];
+            UserRetirementCertificate memory certificate = certificates[i];
             // Validate that the certificate not already claimed.
             require(!certificate.claimed, "Certificate already claimed");
-            require(tree == certificate.tree, "Not your tree certificate");
             // Mark the NFT as claimed/transferred.
-            certificates[index].claimed = true;
+            certificates[i].claimed = true;
             // Transfer the certificate.
             retirementCertificate.safeTransferFrom(
                 greenDonation,
                 msg.sender,
-                certificate.retirementCertificate
+                certificate.tokenId
             );
-            emit RetirementCertificateClaimed(
-                certificate.retirementCertificate,
-                tree,
-                msg.sender
-            );
+            emit RetirementCertificateClaimed(certificate.tokenId, msg.sender);
         }
     }
 
     function getUserRetirementCertificates(
-        uint256 tree
+        address account
     ) external view returns (UserRetirementCertificate[] memory, uint256) {
         UserRetirementCertificate[]
-            memory certificates = userRetirementCertificates[tree];
+            memory certificates = userRetirementCertificates[account];
 
         return (certificates, certificates.length);
     }
 
-    event SetTreeContract(address oldTreeContract, address newTreeContract);
-    event AttachCertificateForClaim(
-        uint256 indexed retirementCertificate,
-        uint256 tree
-    );
+    event AttachCertificateForClaim(uint256 indexed tokenId, address account);
     event SetGreenDonation(address oldGreenDonation, address newGreenDonation);
     event RetirementCertificateClaimed(
-        uint256 indexed retirementCertificate,
-        uint256 tree,
+        uint256 indexed tokenid,
         address claimer
     );
     event SetRetirementCertificate(

@@ -28,20 +28,20 @@ contract GreenDonation is
 
     IERC20 public rewardsToken;
     IERC20 public stakingToken;
-    uint256 public rewardRate = 0;
-    uint256 public lastUpdateTime;
-    uint256 public rewardsDuration;
     uint256 public periodFinish = 0;
+    uint256 public rewardRate = 0;
+    uint256 public rewardsDuration;
+    uint256 public lastUpdateTime;
     uint256 public rewardPerTokenStored;
 
-    mapping(uint256 => uint256) public userRewardPerTokenPaid;
-    mapping(uint256 => uint256) public rewards;
+    mapping(address => uint256) public userRewardPerTokenPaid;
+    mapping(address => uint256) public rewards;
 
     uint256 private _totalSupply;
-    mapping(uint256 => uint256) private _balances;
+    mapping(address => uint256) private _balances;
 
     uint256 public claimInterval = 7 days;
-    mapping(uint256 => uint256) public lastClaimTimestamp;
+    mapping(address => uint256) public lastClaimTimestamp;
 
     ITC02 public tc02;
     TreeContract public treeContract;
@@ -83,26 +83,12 @@ contract GreenDonation is
         return _totalSupply;
     }
 
-    function balanceOf(uint256 tree) external view returns (uint256) {
-        return _balances[tree];
+    function balanceOf(address account) external view returns (uint256) {
+        return _balances[account];
     }
 
     function lastTimeRewardApplicable() public view returns (uint256) {
         return Math.min(block.timestamp, periodFinish);
-    }
-
-    function onERC721Received(
-        address,
-        address from,
-        uint256 tokenId,
-        bytes calldata
-    ) external returns (bytes4) {
-        // Only retirement certificates can transfer NFT to this contract.
-        require(
-            msg.sender == address(retirementCertificate),
-            "Not retirement certificate"
-        );
-        return this.onERC721Received.selector;
     }
 
     function rewardPerToken() public view returns (uint256) {
@@ -119,12 +105,12 @@ contract GreenDonation is
             );
     }
 
-    function earned(uint256 tree) public view returns (uint256) {
+    function earned(address account) public view returns (uint256) {
         return
-            _balances[tree]
-                .mul(rewardPerToken().sub(userRewardPerTokenPaid[tree]))
+            _balances[account]
+                .mul(rewardPerToken().sub(userRewardPerTokenPaid[account]))
                 .div(1e18)
-                .add(rewards[tree]);
+                .add(rewards[account]);
     }
 
     function getRewardForDuration() external view returns (uint256) {
@@ -163,32 +149,36 @@ contract GreenDonation is
     }
 
     function stake(
-        uint256 tree,
+        uint256 tokenId,
         uint256 amount
-    ) external nonReentrant updateReward(tree) onlyTreeOwner(tree, msg.sender) {
+    ) external nonReentrant updateReward(msg.sender) {
         require(amount > 0, "Cannot stake 0");
         _totalSupply = _totalSupply.add(amount);
-        _balances[tree] = _balances[tree].add(amount);
+        _balances[msg.sender] = _balances[msg.sender].add(amount);
         stakingToken.safeTransferFrom(msg.sender, address(this), amount);
-        emit Staked(tree, msg.sender, amount);
-        treeContract.waterTree(tree);
+        emit Staked(msg.sender, amount);
+        treeContract.waterTree(tokenId);
     }
 
     function withdraw(
-        uint256 tree,
+        uint256 tokenId,
         uint256 amount
-    ) public nonReentrant updateReward(tree) onlyTreeOwner(tree, msg.sender) {
+    ) public nonReentrant updateReward(msg.sender) {
         require(amount > 0, "Cannot withdraw 0");
         _totalSupply = _totalSupply.sub(amount);
-        _balances[tree] = _balances[tree].sub(amount);
+        _balances[msg.sender] = _balances[msg.sender].sub(amount);
         stakingToken.safeTransfer(msg.sender, amount);
-        emit Withdrawn(tree, msg.sender, amount);
-        treeContract.downgradeTree(tree);
+        emit Withdrawn(msg.sender, amount);
+        require(
+            treeContract.ownerOf(tokenId) == msg.sender,
+            "Cannot downgrade someone elses tree"
+        );
+        treeContract.downgradeTree(tokenId);
     }
 
     function _swapRewardTokenForTC02(
         uint256 rewardsAmountToSwap
-    ) internal returns (uint256) {
+    ) internal nonReentrant returns (uint256) {
         address[] memory path = new address[](2);
         path[0] = address(rewardsToken);
         path[1] = address(tc02);
@@ -204,37 +194,38 @@ contract GreenDonation is
 
     function _retireTC02Tokens(
         uint256 amountToRetire
-    ) internal returns (uint256[] memory) {
+    ) internal nonReentrant returns (uint256[] memory) {
         uint256[] memory retirementEventIds = new uint256[](1);
         retirementEventIds[0] = tc02.retire(amountToRetire);
         return retirementEventIds;
     }
 
     function getReward(
-        uint256 tree,
+        string calldata retiringEntityString,
         string calldata beneficiaryString,
         string calldata retirementMessage
     )
         public
         nonReentrant
-        updateReward(tree)
-        checkClaimingInternval(tree)
-        onlyTreeOwner(tree, msg.sender)
+        updateReward(msg.sender)
+        checkClaimingInternval(msg.sender)
     {
-        uint256 reward = rewards[tree];
+        uint256 reward = rewards[msg.sender];
         if (reward > 0) {
-            rewards[tree] = 0;
-            lastClaimTimestamp[tree] = block.timestamp;
+            rewards[msg.sender] = 0;
+            lastClaimTimestamp[msg.sender] = block.timestamp;
+
             uint256 rewardsToSwapForTC02 = reward.mul(10).div(100);
             rewardsToken.safeTransfer(
                 msg.sender,
                 reward.sub(rewardsToSwapForTC02)
             );
-            emit RewardPaid(tree, msg.sender, reward.sub(rewardsToSwapForTC02));
+            emit RewardPaid(msg.sender, reward.sub(rewardsToSwapForTC02));
+
             uint256 retirementCertificateTokenId = retirementCertificate
                 .mintCertificate(
                     address(this), // Contract will get the certificate.
-                    "Into The Verse Green Donation User",
+                    retiringEntityString,
                     msg.sender, // But, msg.sender will be the beneficiary.
                     beneficiaryString,
                     retirementMessage,
@@ -247,26 +238,27 @@ contract GreenDonation is
                 retirementCertificateTokenId
             );
             retirementCertificateEscrow.registerCertificateForClaim(
-                tree,
+                msg.sender,
                 retirementCertificateTokenId
             );
         }
     }
 
     function exit(
-        uint256 tree,
+        uint256 tokenId,
+        string calldata retiringEntityString,
         string calldata beneficiaryString,
         string calldata retirementMessage
     ) external {
-        withdraw(tree, _balances[tree]);
-        getReward(tree, beneficiaryString, retirementMessage);
+        withdraw(tokenId, _balances[msg.sender]);
+        getReward(retiringEntityString, beneficiaryString, retirementMessage);
     }
 
     /* ========== RESTRICTED FUNCTIONS ========== */
 
     function notifyRewardAmount(
         uint256 reward
-    ) external override onlyRewardsDistribution updateReward(0) {
+    ) external override onlyRewardsDistribution updateReward(address(0)) {
         if (block.timestamp >= periodFinish) {
             rewardRate = reward.div(rewardsDuration);
         } else {
@@ -292,24 +284,19 @@ contract GreenDonation is
 
     /* ========== MODIFIERS ========== */
 
-    modifier updateReward(uint256 tree) {
+    modifier updateReward(address account) {
         rewardPerTokenStored = rewardPerToken();
         lastUpdateTime = lastTimeRewardApplicable();
-        if (tree != 0) {
-            rewards[tree] = earned(tree);
-            userRewardPerTokenPaid[tree] = rewardPerTokenStored;
+        if (account != address(0)) {
+            rewards[account] = earned(account);
+            userRewardPerTokenPaid[account] = rewardPerTokenStored;
         }
         _;
     }
 
-    modifier onlyTreeOwner(uint256 tree, address account) {
-        require(treeContract.ownerOf(tree) == account, "Not tree owner");
-        _;
-    }
-
-    modifier checkClaimingInternval(uint256 tree) {
+    modifier checkClaimingInternval(address account) {
         require(
-            lastClaimTimestamp[tree] + claimInterval <= block.timestamp,
+            lastClaimTimestamp[account] + claimInterval <= block.timestamp,
             "Cannot claim twice in same claim epoch"
         );
         _;
@@ -318,11 +305,11 @@ contract GreenDonation is
     /* ========== EVENTS ========== */
 
     event RewardAdded(uint256 reward);
+    event Staked(address indexed user, uint256 amount);
+    event Withdrawn(address indexed user, uint256 amount);
+    event RewardPaid(address indexed user, uint256 reward);
     event SetSwapRouter(address oldRouter, address newRouter);
     event SetClaimInterval(uint256 oldInterval, uint256 newInterval);
-    event Staked(uint256 indexed tree, address user, uint256 amount);
-    event Withdrawn(uint256 indexed tree, address user, uint256 amount);
-    event RewardPaid(uint256 indexed tree, address user, uint256 reward);
     event SetTreeContract(address oldTreeContract, address newTreeContract);
     event SetRetirementCertificateEscrow(address oldEscrow, address newEscrow);
 }
