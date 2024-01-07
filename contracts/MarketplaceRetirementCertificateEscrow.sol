@@ -5,58 +5,50 @@ import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 import {ReentrancyGuard} from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 import {ERC721Upgradeable} from "@openzeppelin/contracts-upgradeable/token/ERC721/ERC721Upgradeable.sol";
 
-import {TreeContract} from "./TreeContract.sol";
-
-contract RetirementCertificateEscrow is Ownable, ReentrancyGuard {
+contract MarketplaceRetirementCertificateEscrow is Ownable, ReentrancyGuard {
     /* ========== STATE VARIABLES ========== */
     struct UserRetirementCertificate {
-        uint256 tree;
+        uint256 tokenId;
         uint256 retirementCertificate;
         bool claimed;
         uint256 index;
-        address ownerContract;
+        address nftAddress;
     }
 
-    address public greenDonation;
+    address public nftMarketplace;
 
-    mapping(uint256 => UserRetirementCertificate[])
+    mapping(bytes => UserRetirementCertificate[])
         public userRetirementCertificates;
 
-    TreeContract public treeContract;
     ERC721Upgradeable public retirementCertificate;
 
     constructor() Ownable(msg.sender) {}
 
-    modifier onlyTreeOwner(uint256 tree, address account) {
-        require(treeContract.ownerOf(tree) == account, "Not tree owner");
+    modifier onlyNFTOwner(
+        address nftAddress,
+        uint256 tokenId,
+        address account
+    ) {
+        ERC721Upgradeable nft = ERC721Upgradeable(nftAddress);
+        require(nft.ownerOf(tokenId) == account, "Not token owner");
         _;
     }
 
-    modifier onlyGreenDonationOrTreeContract(address caller) {
-        require(
-            caller == greenDonation || caller == address(treeContract),
-            "Caller not GreenDonation or tree contract"
-        );
+    modifier onlyNftMarketplace(address caller) {
+        require(caller == nftMarketplace, "Caller not NFTMarketplace");
         _;
     }
 
-    modifier notGreenDonation(address caller) {
-        require(caller != greenDonation, "Caller GreenDonation");
+    modifier notNftMarketplace(address caller) {
+        require(caller != nftMarketplace, "Caller NFTMarketplace");
         _;
     }
 
-    function setGreenDonation(
-        address _greenDonation
+    function setNFTMarketplace(
+        address _marketplace
     ) external onlyOwner nonReentrant {
-        emit SetGreenDonation(greenDonation, _greenDonation);
-        greenDonation = _greenDonation;
-    }
-
-    function setTreeContract(
-        address _treeContract
-    ) external onlyOwner nonReentrant {
-        emit SetGreenDonation(address(treeContract), _treeContract);
-        treeContract = TreeContract(_treeContract);
+        emit SetNFTMarketplace(nftMarketplace, _marketplace);
+        nftMarketplace = _marketplace;
     }
 
     function setRetirementCertificate(
@@ -70,34 +62,42 @@ contract RetirementCertificateEscrow is Ownable, ReentrancyGuard {
     }
 
     function registerCertificateForClaim(
-        uint256 tree,
+        address nftAddress,
+        uint256 tokenId,
         uint256 _retirementCertificate
-    ) external nonReentrant onlyGreenDonationOrTreeContract(msg.sender) {
+    ) external nonReentrant onlyNftMarketplace(msg.sender) {
+        bytes memory key = abi.encode(nftAddress, tokenId);
         UserRetirementCertificate
             memory certificate = UserRetirementCertificate({
                 retirementCertificate: _retirementCertificate,
                 claimed: false,
-                tree: tree,
-                index: userRetirementCertificates[tree].length,
-                ownerContract: msg.sender
+                tokenId: tokenId,
+                index: userRetirementCertificates[key].length,
+                nftAddress: nftAddress
             });
-        userRetirementCertificates[tree].push(certificate);
-        emit AttachCertificateForClaim(_retirementCertificate, tree);
+        userRetirementCertificates[key].push(certificate);
+        emit AttachCertificateForClaim(
+            _retirementCertificate,
+            tokenId,
+            nftAddress
+        );
     }
 
     function claimRetirementCertificate(
-        uint256 tree,
+        address nftAddress,
+        uint256 tokenId,
         uint256[] memory userRetirementCertificatesIndexes
     )
         external
         nonReentrant
-        onlyTreeOwner(tree, msg.sender)
-        notGreenDonation(msg.sender)
+        onlyNFTOwner(nftAddress, tokenId, msg.sender)
+        notNftMarketplace(msg.sender)
     {
-        require(msg.sender != greenDonation, "GreenDonation cannot claim");
+        require(msg.sender != nftMarketplace, "Marketplace cannot claim");
 
+        bytes memory key = abi.encode(nftAddress, tokenId);
         UserRetirementCertificate[]
-            storage certificates = userRetirementCertificates[tree];
+            storage certificates = userRetirementCertificates[key];
 
         require(certificates.length > 0, "No certificate found");
         require(
@@ -113,41 +113,48 @@ contract RetirementCertificateEscrow is Ownable, ReentrancyGuard {
             UserRetirementCertificate memory certificate = certificates[index];
             // Validate that the certificate not already claimed.
             require(!certificate.claimed, "Certificate already claimed");
-            require(tree == certificate.tree, "Not your tree certificate");
+            require(tokenId == certificate.tokenId, "Not your nft");
+            require(
+                nftAddress == certificate.nftAddress,
+                "Not correct NFT address"
+            );
             // Mark the NFT as claimed/transferred.
             certificates[index].claimed = true;
             // Transfer the certificate.
             retirementCertificate.safeTransferFrom(
-                certificate.ownerContract,
+                nftMarketplace,
                 msg.sender,
                 certificate.retirementCertificate
             );
             emit RetirementCertificateClaimed(
+                nftAddress,
                 certificate.retirementCertificate,
-                tree,
+                tokenId,
                 msg.sender
             );
         }
     }
 
     function getUserRetirementCertificates(
-        uint256 tree
+        address nftAddress,
+        uint256 tokenId
     ) external view returns (UserRetirementCertificate[] memory, uint256) {
+        bytes memory key = abi.encode(nftAddress, tokenId);
         UserRetirementCertificate[]
-            memory certificates = userRetirementCertificates[tree];
-
+            memory certificates = userRetirementCertificates[key];
         return (certificates, certificates.length);
     }
 
-    event SetTreeContract(address oldTreeContract, address newTreeContract);
     event AttachCertificateForClaim(
         uint256 indexed retirementCertificate,
-        uint256 tree
+        uint256 tokenId,
+        address nftAddress
     );
-    event SetGreenDonation(address oldGreenDonation, address newGreenDonation);
+    event SetNFTMarketplace(address oldMarketplace, address newMarketplace);
     event RetirementCertificateClaimed(
+        address nftAddress,
         uint256 indexed retirementCertificate,
-        uint256 tree,
+        uint256 tokenId,
         address claimer
     );
     event SetRetirementCertificate(

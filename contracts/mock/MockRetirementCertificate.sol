@@ -19,17 +19,8 @@ contract MockRetirementCertificate is ERC721 {
         string calldata retirementMessage,
         uint256[] calldata retirementEventIds
     ) external returns (uint256) {
-        {
-            retiringEntityString;
-            beneficiary;
-            beneficiaryString;
-            retirementMessage;
-            retirementEventIds;
-        }
-
         tokenId++;
         _mint(retiringEntity, tokenId);
-
         return tokenId;
     }
 }
