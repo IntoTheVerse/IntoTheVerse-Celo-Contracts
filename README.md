@@ -12,6 +12,163 @@
 
 ![image](https://github.com/IntoTheVerse/IntoTheVerse-Celo-Contracts/assets/43913734/b57ab8a9-c51a-441d-93ad-ef331c573d57)
 
+## Tests in Hardhat
+
+```
+yarn test
+yarn run v1.22.21
+$ hardhat test
+
+
+  Avatar contract
+    Deployment
+      ✔ Should set the right owner (1022ms)
+      ✔ Should have the correct base URI
+    Avatar functionality
+      ✔ Should change avatar image
+      ✔ Should equip and remove equipment
+      ✔ Should award and remove badge
+
+  GreenDonation contract
+    - Access restricted functions
+      ✔  - Should setClaimInterval if owner (219ms)
+      ✔  - Should not setClaimInterval if not owner
+      ✔  - Should setRedemptionRate if owner
+      ✔  - Should not setRedemptionRate if not owner
+      ✔  - Should setSwapRouter if owner
+      ✔  - Should not setSwapRouter if not owner
+      ✔  - Should setTreeContract if owner
+      ✔  - Should not setTreeContract if owner
+      ✔  - Should setRetirementCertificateEscrow if owner
+      ✔  - Should not setRetirementCertificateEscrow if owner
+      ✔  - Should setRetirementCertificateEscrow if owner
+      ✔  - Should not notifyRewardAmount if owner
+    - Set rewards
+      ✔  - Should notifyRewardAmount properly
+    - Stake
+      ✔  - Should stake (68ms)
+      ✔  - Should not stake if not tree nft owner (66ms)
+    - Withdraw
+      ✔  - Should withdraw (79ms)
+      ✔  - Should not withdraw if not tree nft owner (73ms)
+    - Get reward
+      ✔  - Should fetch reward (137ms)
+      ✔  - Should not fetch reward if not nft owner (91ms)
+      ✔  - Should fetch reward multiple times (175ms)
+      ✔  - Should fetch reward as per setInterval (150ms)
+      ✔  - Should not fetch reward as per setInterval (122ms)
+
+  Marketplace contract
+    - Access restricted functions
+      ✔  - Should setRedemptionRate if owner (133ms)
+      ✔  - Should not setRedemptionRate if not owner
+      ✔  - Should setSwapRouter if owner
+      ✔  - Should not setSwapRouter if not owner
+      ✔  - Should setRetirementCertificateEscrow if owner
+      ✔  - Should not setRetirementCertificateEscrow if not owner
+    - List Item
+      ✔  - Should listItem
+      ✔  - Should not listItem if already listed
+      ✔  - Should not listItem if not nft owner
+      ✔  - Should not listItem if price <= 0
+      ✔  - Should not listItem if NFT not approved
+    - Cancel Listing
+      ✔  - Should cancelListing
+      ✔  - Should not cancelListing if not owner
+      ✔  - Should not cancelListing if not listed
+    - Update Listing
+      ✔  - Should updateListing
+      ✔  - Should not updateListing if not owner
+      ✔  - Should not cancelListing if not listed
+      ✔  - Should not cancelListing if newPrice = 0
+    - Buy Item
+      ✔  - Should buyItem (61ms)
+      ✔  - Should reflect buyItem state in MarketplaceRetirementCertificateEscrow (71ms)
+      ✔  - Should not buyItem if not listed
+      ✔  - Should not buyItem if not value < price (47ms)
+      ✔  - Should not buyItem if not value == 0 (45ms)
+
+  MarketplaceRetirementCertificateEscrow contract
+    - Access restricted functions
+      ✔  - Should setNFTMarketplace if owner (121ms)
+      ✔  - Should not setNFTMarketplace if not owner
+      ✔  - Should setRetirementCertificate if owner
+      ✔  - Should not setRetirementCertificate if not owner
+    - Claim Retirement Certificate
+      ✔  - Should claim retirement certificate from buying NFT on marketplace (88ms)
+      ✔  - Should not claim retirement certificate from buying NFT on marketplace if not NFT current owner (79ms)
+      ✔  - Should not affect other certificates when claimed 1 ceritificate (132ms)
+
+  RetirementCertificateEscrow contract
+    - Access restricted functions
+      ✔  - Should setGreenDonation if owner (158ms)
+      ✔  - Should not setGreenDonation if not owner
+      ✔  - Should setTreeContract if owner
+      ✔  - Should not setTreeContract if not owner
+      ✔  - Should setRetirementCertificate if owner
+      ✔  - Should not setRetirementCertificate if not owner
+    - Claim Certificate
+      ✔  - Should claim retirement certificate from staking (123ms)
+      ✔  - Should not claim retirement certificate from staking if not tree owner (115ms)
+      ✔  - Should claim retirement certificate from tree (120ms)
+      ✔  - Should claim retirement certificate from both tree and staking (125ms)
+      ✔  - Should not claim retirement certificate if not tree owner (113ms)
+      ✔  - Should not claim retirement certificate if already claimed (132ms)
+      ✔  - Should not affect other claim retirement certificate when 2 trees (223ms)
+      ✔  - Should not affect other claim retirement certificate (199ms)
+      ✔  - Should claim both retirement certificate (157ms)
+      ✔  - Should claim both retirement certificate (231ms)
+
+  Token contract
+    Deployment
+      ✔ Should set the right owner
+      ✔ Should assign the total supply of tokens to the owner
+    Transactions
+Transferring from 0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266 to 0x70997970c51812dc3a010c7d01b50e0d17dc79c8 50 tokens
+Transferring from 0x70997970c51812dc3a010c7d01b50e0d17dc79c8 to 0x3c44cdddb6a900fa2b585dd299e03d12fa4293bc 50 tokens
+      ✔ Should transfer tokens between accounts
+Transferring from 0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266 to 0x70997970c51812dc3a010c7d01b50e0d17dc79c8 50 tokens
+Transferring from 0x70997970c51812dc3a010c7d01b50e0d17dc79c8 to 0x3c44cdddb6a900fa2b585dd299e03d12fa4293bc 50 tokens
+      ✔ should emit Transfer events
+      ✔ Should fail if sender doesn't have enough tokens
+
+  TreeContract
+    - Access restricted functions
+      ✔  - Should set cost if owner (172ms)
+      ✔  - Should not set cost if not owner
+      ✔  - Should set green donation if owner
+      ✔  - Should not set green donation if not owner
+      ✔  - Should set base uri if owner
+      ✔  - Should not set base uri if not owner
+      ✔  - Should withdraw if owner
+      ✔  - Should withdraw if owner
+    - Tree levels
+      ✔  - Should water tree if not green donation
+      ✔  - Should water tree if not green donation
+      ✔  - Should downgrade tree if not green donation (44ms)
+    - Mint
+      ✔  - Should mint 1 token
+      ✔  - Should mint 10 token
+      ✔  - Should mint 1 token properly when cost is 1 ETH
+      ✔  - Should mint 8 token properly when cost is 1 ETH
+      ✔  - Should not mint 8 token properly when cost is 1 ETH but less is sent
+      ✔  - Should not mint 1 token properly when cost is 1 ETH and less amount is sent
+      ✔  - Should not mint 2 token properly when cost is 1 ETH and less amount is sent
+      ✔  - Should mint 10 token through out (52ms)
+      ✔  - Should mint 10 token at once
+      ✔  - Should not mint more than 10 token at once
+      ✔  - Should not mint more than 10 token through out
+
+
+  100 passing (6s)
+
+✨  Done in 6.60s.
+
+
+
+```
+
+
 Transaction hashes for all functionality:
 
 
