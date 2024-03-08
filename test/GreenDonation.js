@@ -11,6 +11,7 @@ describe('GreenDonation contract', () => {
     const [owner, whale, whale2] = await ethers.getSigners();
 
     const TC02 = await ethers.getContractFactory('MockTC02');
+    const WETH = await ethers.getContractFactory('MockERC20');
     const RewardToken = await ethers.getContractFactory('MockERC20');
     const StakingToken = await ethers.getContractFactory('MockERC20');
     const TreeContract = await ethers.getContractFactory('TreeContract');
@@ -20,12 +21,13 @@ describe('GreenDonation contract', () => {
     const RetirementCertificateEscrow = await ethers.getContractFactory('RetirementCertificateEscrow');
 
     const swapRouter = await SwapRouter.deploy();
-    const treeContract = await TreeContract.deploy('');
+    const weth = await WETH.deploy('WETH', 'WETH');
     const tc02 = await TC02.deploy('Toucan protocol token', 'TC02');
+    const retirementCertificate = await RetirementCertificate.deploy('Retirement Certificate', 'R Cert');
+    const treeContract = await TreeContract.deploy('', tc02.address, weth.address, retirementCertificate.address, swapRouter.address);
     const rewardToken = await RewardToken.deploy('Reward Token', 'RT');
     const stakingToken = await StakingToken.deploy('Stake Token', 'ST');
     const retirementCertificateEscrow = await RetirementCertificateEscrow.deploy();
-    const retirementCertificate = await RetirementCertificate.deploy('Retirement Certificate', 'R Cert');
     
     const greenDonation = await GreenDonation.deploy(
       owner.address,
@@ -38,6 +40,10 @@ describe('GreenDonation contract', () => {
       treeContract.address,
       retirementCertificateEscrow.address
     );
+
+    await treeContract.setSwapRouter(swapRouter.address);
+    await treeContract.setRetirementCertificateEscrow(retirementCertificateEscrow.address);
+    await retirementCertificateEscrow.setTreeContract(treeContract.address);
 
     return { provider, ethers, DAY, ETH, HALF_ETH, owner, whale, whale2, TC02, RewardToken, StakingToken, TreeContract, GreenDonation, SwapRouter, RetirementCertificate, RetirementCertificateEscrow , swapRouter, treeContract, tc02, rewardToken, stakingToken, retirementCertificate, greenDonation, retirementCertificateEscrow};
   }
@@ -131,7 +137,7 @@ describe('GreenDonation contract', () => {
       await rewardToken.mint(greenDonation.address, ETH.mul(1000));
       await stakingToken.mint(owner.address, ETH.mul(10));
       await stakingToken.approve(greenDonation.address, ETH);
-      await treeContract.mint(1);
+      await treeContract.mint(1, '', '');
       await treeContract.setGreenDonationContract(greenDonation.address);
       
       await expect(greenDonation.stake(1, ETH)).to.not.reverted;
@@ -149,7 +155,7 @@ describe('GreenDonation contract', () => {
       await stakingToken.mint(whale.address, ETH.mul(10));
       await stakingToken.mint(owner.address, ETH.mul(10));
       await stakingToken.approve(greenDonation.address, ETH);
-      await treeContract.connect(whale).mint(1);
+      await treeContract.connect(whale).mint(1, '', '');
       await treeContract.setGreenDonationContract(greenDonation.address);
       
       await expect(greenDonation.stake(1, ETH)).to.revertedWith('Not tree owner');
@@ -170,7 +176,7 @@ describe('GreenDonation contract', () => {
       await rewardToken.mint(greenDonation.address, ETH.mul(1000));
       await stakingToken.mint(owner.address, ETH.mul(10));
       await stakingToken.approve(greenDonation.address, ETH);
-      await treeContract.mint(1);
+      await treeContract.mint(1, '', '');
       await treeContract.setGreenDonationContract(greenDonation.address);
       
       await expect(greenDonation.stake(1, ETH)).to.not.reverted;
@@ -194,7 +200,7 @@ describe('GreenDonation contract', () => {
       await rewardToken.mint(greenDonation.address, ETH.mul(1000));
       await stakingToken.mint(owner.address, ETH.mul(10));
       await stakingToken.approve(greenDonation.address, ETH);
-      await treeContract.mint(1);
+      await treeContract.mint(1, '', '');
       await treeContract.setGreenDonationContract(greenDonation.address);
       
       await expect(greenDonation.stake(1, ETH)).to.not.reverted;
@@ -222,7 +228,7 @@ describe('GreenDonation contract', () => {
       await greenDonation.setClaimInterval(0);
       await stakingToken.mint(owner.address, ETH.mul(10));
       await stakingToken.approve(greenDonation.address, ETH.mul(100));
-      await treeContract.mint(1);
+      await treeContract.mint(1, '', '');
       await treeContract.setGreenDonationContract(greenDonation.address);
       await retirementCertificateEscrow.setGreenDonation(greenDonation.address);
       await expect(greenDonation.stake(1, ETH)).to.not.reverted;
@@ -250,10 +256,10 @@ describe('GreenDonation contract', () => {
       expect(await rewardToken.balanceOf(owner.address)).gt(0);
 
       const userRetirementCertificate = await retirementCertificateEscrow.getUserRetirementCertificates(1);
-      expect(userRetirementCertificate[0][0].claimed).eq(false)
-      expect(userRetirementCertificate[0][0].retirementCertificate).eq(1)
-      expect(userRetirementCertificate[1]).eq(1)
-      expect(await retirementCertificate.ownerOf(1)).eq(greenDonation.address);
+      expect(userRetirementCertificate[0][1].claimed).eq(false)
+      expect(userRetirementCertificate[0][1].retirementCertificate).eq(2)
+      expect(userRetirementCertificate[1]).eq(2)
+      expect(await retirementCertificate.ownerOf(2)).eq(greenDonation.address);
     });
 
     it(' - Should not fetch reward if not nft owner', async () => {
@@ -264,7 +270,7 @@ describe('GreenDonation contract', () => {
       await greenDonation.setClaimInterval(0);
       await stakingToken.mint(owner.address, ETH.mul(10));
       await stakingToken.approve(greenDonation.address, ETH);
-      await treeContract.mint(1);
+      await treeContract.mint(1, '', '');
       await treeContract.setGreenDonationContract(greenDonation.address);
       await retirementCertificateEscrow.setGreenDonation(greenDonation.address);
       await expect(greenDonation.stake(1, ETH)).to.not.reverted;
@@ -296,7 +302,7 @@ describe('GreenDonation contract', () => {
       await greenDonation.setClaimInterval(0);
       await stakingToken.mint(owner.address, ETH.mul(10));
       await stakingToken.approve(greenDonation.address, ETH);
-      await treeContract.mint(1);
+      await treeContract.mint(1, '', '');
       await treeContract.setGreenDonationContract(greenDonation.address);
       await retirementCertificateEscrow.setGreenDonation(greenDonation.address);
       await expect(greenDonation.stake(1, ETH)).to.not.reverted;
@@ -318,14 +324,13 @@ describe('GreenDonation contract', () => {
       expect(await stakingToken.balanceOf(owner.address)).to.eq(ETH.mul(9));
       expect(await rewardToken.balanceOf(greenDonation.address)).lt(rewardTokenBalanceBefore);
       expect(await rewardToken.balanceOf(owner.address)).gt(0);
-      expect((await retirementCertificateEscrow.getUserRetirementCertificates(1))[1]).eq(1);
+      expect((await retirementCertificateEscrow.getUserRetirementCertificates(1))[1]).eq(2);
 
       let userRetirementCertificate = await retirementCertificateEscrow.getUserRetirementCertificates(1);
-      expect(userRetirementCertificate[0][0].claimed).eq(false)
-      expect(userRetirementCertificate[0][0].retirementCertificate).eq(1)
-      expect(userRetirementCertificate[1]).eq(1)
-      expect(await retirementCertificate.ownerOf(1)).eq(greenDonation.address);
-
+      expect(userRetirementCertificate[0][1].claimed).eq(false)
+      expect(userRetirementCertificate[0][1].retirementCertificate).eq(2)
+      expect(userRetirementCertificate[1]).eq(2)
+      expect(await retirementCertificate.ownerOf(2)).eq(greenDonation.address);
       timestamp = await time.latest()
       await provider.send("evm_setNextBlockTimestamp", [timestamp + 2 * DAY]);
       await provider.send("evm_mine");
@@ -339,17 +344,17 @@ describe('GreenDonation contract', () => {
       expect(await stakingToken.balanceOf(owner.address)).to.eq(ETH.mul(9));
       expect(await rewardToken.balanceOf(greenDonation.address)).lt(rewardTokenBalanceBefore);
       expect(await rewardToken.balanceOf(owner.address)).gt(ownerRewardTokenBalanceBefore);
-      expect((await retirementCertificateEscrow.getUserRetirementCertificates(1))[1]).eq(2);
+      expect((await retirementCertificateEscrow.getUserRetirementCertificates(1))[1]).eq(3);
       userRetirementCertificate = await retirementCertificateEscrow.getUserRetirementCertificates(1);
-      expect(userRetirementCertificate[0][0].claimed).eq(false)
-      expect(userRetirementCertificate[0][0].tree).eq(1)
-      expect(userRetirementCertificate[0][0].retirementCertificate).eq(1)
       expect(userRetirementCertificate[0][1].claimed).eq(false)
-      expect(userRetirementCertificate[0][1].retirementCertificate).eq(2)
       expect(userRetirementCertificate[0][1].tree).eq(1)
-      expect(userRetirementCertificate[1]).eq(2)
-      expect(await retirementCertificate.ownerOf(1)).eq(greenDonation.address);
+      expect(userRetirementCertificate[0][1].retirementCertificate).eq(2)
+      expect(userRetirementCertificate[0][2].claimed).eq(false)
+      expect(userRetirementCertificate[0][2].retirementCertificate).eq(3)
+      expect(userRetirementCertificate[0][2].tree).eq(1)
+      expect(userRetirementCertificate[1]).eq(3)
       expect(await retirementCertificate.ownerOf(2)).eq(greenDonation.address);
+      expect(await retirementCertificate.ownerOf(3)).eq(greenDonation.address);
 
     });
 
@@ -361,7 +366,7 @@ describe('GreenDonation contract', () => {
       await greenDonation.setClaimInterval(DAY);
       await stakingToken.mint(owner.address, ETH.mul(10));
       await stakingToken.approve(greenDonation.address, ETH);
-      await treeContract.mint(1);
+      await treeContract.mint(1, '', '');
       await treeContract.setGreenDonationContract(greenDonation.address);
       await retirementCertificateEscrow.setGreenDonation(greenDonation.address);
       await expect(greenDonation.stake(1, ETH)).to.not.reverted;
@@ -392,7 +397,7 @@ describe('GreenDonation contract', () => {
       await greenDonation.notifyRewardAmount(ETH.mul(1000));
       await stakingToken.mint(owner.address, ETH.mul(10));
       await stakingToken.approve(greenDonation.address, ETH.mul(100));
-      await treeContract.mint(1);
+      await treeContract.mint(1, '', '');
       let timestamp = await time.latest();
       await treeContract.setGreenDonationContract(greenDonation.address);
       await retirementCertificateEscrow.setGreenDonation(greenDonation.address);

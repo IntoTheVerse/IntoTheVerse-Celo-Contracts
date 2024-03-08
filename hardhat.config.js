@@ -33,11 +33,11 @@ module.exports = {
   networks: {
     goerli: {
       url: `https://goerli.infura.io/v3/${process.env.INFURA_API_KEY}`, // Replace with your Infura API key
-      accounts: [process.env.PRIVATE_KEY]
+      accounts: [process.env.PRIVATE_KEY, process.env.PRIVATE_KEY2],
     },
     alfajores: {
      url: "https://alfajores-forno.celo-testnet.org",
-     accounts: [process.env.PRIVATE_KEY],
+     accounts: [process.env.PRIVATE_KEY, process.env.PRIVATE_KEY2],
      chainId: 44787
    }
   },
