@@ -78,7 +78,7 @@ contract GreenDonation is
         retirementCertificateEscrow = RetirementCertificateEscrow(
             _retirementCertificateEscrow
         );
-
+        // adjust minimum stake as per token decimals.
         minimumStake = 1 * (10 ** IERC20(_stakingToken).decimals());
         rewardsToken.approve(address(swapRotuer), type(uint256).max);
     }
@@ -95,6 +95,10 @@ contract GreenDonation is
 
     function lastTimeRewardApplicable() public view returns (uint256) {
         return Math.min(block.timestamp, periodFinish);
+    }
+
+    function getMinimumStake() public view returns (uint256) {
+        return minimumStake
     }
 
     function onERC721Received(
