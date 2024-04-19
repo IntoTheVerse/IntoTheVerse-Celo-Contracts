@@ -959,8 +959,8 @@
       ]
     },
     "/Users/pacman/freelance/IntoTheVerse-Celo-Contracts/contracts/GreenDonation.sol": {
-      "lastModificationDate": 1713523038614,
-      "contentHash": "283fc74dc470ddd1375ab80f542639a5",
+      "lastModificationDate": 1713524405741,
+      "contentHash": "84a8b88f2523314f4639261951646423",
       "sourceName": "contracts/GreenDonation.sol",
       "solcConfig": {
         "version": "0.8.20",
@@ -1046,8 +1046,8 @@
       ]
     },
     "/Users/pacman/freelance/IntoTheVerse-Celo-Contracts/contracts/TreeContract.sol": {
-      "lastModificationDate": 1713522886653,
-      "contentHash": "fa3987cc57225e94a81ed2def5bfc73e",
+      "lastModificationDate": 1713524373455,
+      "contentHash": "b2c9eec11f60f947395fe6027c194a87",
       "sourceName": "contracts/TreeContract.sol",
       "solcConfig": {
         "version": "0.8.20",
@@ -1081,6 +1081,7 @@
         "@uniswap/v2-periphery/contracts/interfaces/IUniswapV2Router02.sol",
         "@openzeppelin/contracts-upgradeable/token/ERC721/ERC721Upgradeable.sol",
         "./interfaces/ITC02.sol",
+        "./GreenDonation.sol",
         "./RetirementCertificateEscrow.sol",
         "./interfaces/IRetirementCertificates.sol"
       ],
