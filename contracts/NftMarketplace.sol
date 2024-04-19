@@ -96,8 +96,7 @@ contract NftMarketplace is ReentrancyGuard, Ownable {
         uint256 tokenId,
         address owner
     ) {
-        Listing memory listing = s_listings[nftAddress][tokenId];
-        if (listing.price > 0) {
+        if (s_listings[nftAddress][tokenId].price > 0) {
             revert AlreadyListed(nftAddress, tokenId);
         }
         _;
@@ -130,13 +129,13 @@ contract NftMarketplace is ReentrancyGuard, Ownable {
     }
 
     function setSwapRouter(address router) external nonReentrant onlyOwner {
-        emit SetSwapRouter(address(swapRouter), router)
+        emit SetSwapRouter(address(swapRouter), router);
         swapRouter = IUniswapV2Router02(router);
     }
 
-    function toggleNftWhitelistValue(address nftAdress) external nonReentrant onlyOwner {
+    function toggleNftWhitelistValue(address nftAddress) external nonReentrant onlyOwner {
         bool value = whitelistedNfts[nftAddress];
-        emit SetNftWhitelistValue(nftAdress, value, !value);
+        emit SetNftWhitelistValue(nftAddress, value, !value);
         whitelistedNfts[nftAddress] = !value;
     }
 

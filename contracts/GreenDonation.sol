@@ -3,6 +3,7 @@ pragma solidity ^0.8.9;
 
 import {Math} from "@openzeppelin/contracts/utils/math/Math.sol";
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
+import {ERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {ReentrancyGuard} from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
@@ -35,7 +36,7 @@ contract GreenDonation is
     uint256 public rewardPerTokenStored;
 
     uint256 public redemptionRate = 10;
-
+    
     mapping(uint256 => uint256) public userRewardPerTokenPaid;
     mapping(uint256 => uint256) public rewards;
 
@@ -47,6 +48,7 @@ contract GreenDonation is
     uint256 public stakeInterval = 7 days;
     mapping(uint256 => uint256) public lastStakeTimestamp;
     mapping(uint256 => uint256) public lastClaimTimestamp;
+    mapping(uint256 => uint256) public noOfTimesStakedForTree;
 
     ITC02 public tc02;
     TreeContract public treeContract;
@@ -79,7 +81,7 @@ contract GreenDonation is
             _retirementCertificateEscrow
         );
         // adjust minimum stake as per token decimals.
-        minimumStake = 1 * (10 ** IERC20(_stakingToken).decimals());
+        minimumStake = 1 * (10 ** ERC20(_stakingToken).decimals());
         rewardsToken.approve(address(swapRotuer), type(uint256).max);
     }
 
@@ -98,7 +100,11 @@ contract GreenDonation is
     }
 
     function getMinimumStake() public view returns (uint256) {
-        return minimumStake
+        return minimumStake;
+    }
+
+    function getNoOfTimesStakeForTree(uint256 tree) public view returns (uint256) {
+        return noOfTimesStakedForTree[tree];
     }
 
     function onERC721Received(
@@ -193,6 +199,7 @@ contract GreenDonation is
         require(amount > 0, "Cannot stake 0");
         require(amount > minimumStake, "Minimum stake not met");
         lastStakeTimestamp[tree] = block.timestamp;
+        noOfTimesStakedForTree[tree] = noOfTimesStakedForTree[tree]++;
         _totalSupply = _totalSupply.add(amount);
         _balances[tree] = _balances[tree].add(amount);
         stakingToken.safeTransferFrom(msg.sender, address(this), amount);
@@ -240,8 +247,6 @@ contract GreenDonation is
 
     function getReward(
         uint256 tree,
-        string calldata beneficiaryString,
-        string calldata retirementMessage,
         uint256 minOut,
         uint256 deadline
     )
@@ -266,8 +271,8 @@ contract GreenDonation is
                     address(this), // Contract will get the certificate.
                     "Into The Verse Green Donation User",
                     msg.sender, // But, msg.sender will be the beneficiary.
-                    beneficiaryString,
-                    retirementMessage,
+                    "Into The Vesre Green Donation Beneficiary",
+                    "Into the Verse Green Donation Retirement",
                     _retireTC02Tokens(
                         _swapRewardTokenForTC02(rewardsToSwapForTC02, minOut, deadline)
                     )
@@ -285,11 +290,11 @@ contract GreenDonation is
 
     function exit(
         uint256 tree,
-        string calldata beneficiaryString,
-        string calldata retirementMessage
+        uint256 minOut,
+        uint256 deadline
     ) external {
         withdraw(tree, _balances[tree]);
-        getReward(tree, beneficiaryString, retirementMessage);
+        getReward(tree, minOut, deadline);
     }
 
     /* ========== RESTRICTED FUNCTIONS ========== */

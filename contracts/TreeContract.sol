@@ -274,7 +274,7 @@ contract TreeContract is Ownable, ERC721A {
 	) internal virtual override {
 		if (from == address(0)) {
 			// allow mint
-			super._beforeTokenTransfer(from, to, tokenId, batchSize);
+			super._beforeTokenTransfers(from, to, tokenId, batchSize);
 		} else if (to == address(0)) {
 			// disallow burn
 			revert("Tree can not burn");
