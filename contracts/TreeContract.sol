@@ -156,20 +156,20 @@ contract TreeContract is Ownable, ERC721A {
     }
 
     function mint(
-        uint256 _quantity,
         string calldata beneficiaryString,
         string calldata retirementMessage
     ) external payable {
         uint256 supply = _totalMinted();
         require(
-            _numberMinted(msg.sender) + _quantity <= 10,
+            _numberMinted(msg.sender) + 1 <= 1,
             "Exceed max mintable amount"
         );
-        require(supply + _quantity <= maxSupply, "Exceed maximum supply");
-        require(msg.value == cost * _quantity, "Incorrect value sent");
+        require(supply + 1 <= maxSupply, "Exceed maximum supply");
+        require(msg.value == cost * 1, "Incorrect value sent");
         uint256 _nextTokenId = _nextTokenId();
-        _mint(msg.sender, _quantity);
-
+        _mint(msg.sender, 1);
+        trees[_nextTokenId].lastWatered = 0;
+        trees[_nextTokenId].level = 0; // Default tree level at 0
         uint256 retirementCertificateTokenId = retirementCertificates
             .mintCertificate(
                 address(this), // Contract will get the certificate.
