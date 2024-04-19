@@ -224,7 +224,7 @@ contract NftMarketplace is ReentrancyGuard, Ownable {
         uint256 retirementCertificateTokenId = retirementCertificate
             .mintCertificate(
                 address(this), // Contract will get the certificate.
-                "Into The Verse Tree User",
+                "Into The Verse Marketplace User",
                 msg.sender, // But, msg.sender will be the beneficiary.
                 beneficiaryString,
                 retirementMessage,
