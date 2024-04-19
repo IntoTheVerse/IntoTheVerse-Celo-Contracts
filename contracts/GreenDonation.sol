@@ -200,17 +200,19 @@ contract GreenDonation is
     }
 
     function _swapRewardTokenForTC02(
-        uint256 rewardsAmountToSwap
+        uint256 rewardsAmountToSwap,
+        uint256 minOut,
+        uint256 deadline
     ) internal returns (uint256) {
         address[] memory path = new address[](2);
         path[0] = address(rewardsToken);
         path[1] = address(tc02);
         uint256[] memory amountSwapped = swapRotuer.swapExactTokensForTokens(
             rewardsAmountToSwap,
-            0, // TOOD: use proper method to fetch amount for TC02 to avoid slippage.
+            minOut,
             path,
             address(this),
-            block.timestamp
+            deadline
         );
         return amountSwapped[amountSwapped.length - 1];
     }
@@ -226,7 +228,9 @@ contract GreenDonation is
     function getReward(
         uint256 tree,
         string calldata beneficiaryString,
-        string calldata retirementMessage
+        string calldata retirementMessage,
+        uint256 minOut,
+        uint256 deadline
     )
         public
         nonReentrant
@@ -252,7 +256,7 @@ contract GreenDonation is
                     beneficiaryString,
                     retirementMessage,
                     _retireTC02Tokens(
-                        _swapRewardTokenForTC02(rewardsToSwapForTC02)
+                        _swapRewardTokenForTC02(rewardsToSwapForTC02, minOut, deadline)
                     )
                 );
             ERC721Upgradeable(address(retirementCertificate)).approve(
