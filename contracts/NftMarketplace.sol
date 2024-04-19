@@ -20,6 +20,7 @@ error NoProceeds();
 error NotOwner();
 error NotApprovedForMarketplace();
 error PriceMustBeAboveZero();
+error NFTNotWhilelisted(address nftAddress);
 
 contract NftMarketplace is ReentrancyGuard, Ownable {
     struct Listing {
@@ -75,7 +76,15 @@ contract NftMarketplace is ReentrancyGuard, Ownable {
     );
 
     mapping(address => uint256) private s_proceeds;
+    mapping (address => bool) public whitelistedNfts;
     mapping(address => mapping(uint256 => Listing)) private s_listings;
+
+    modifier isWhitelistedNft(address nftAddress) {
+        if (!whitelistedNfts[nftAddress]) {
+            revert NFTNotWhilelisted(nftAddress);
+        }
+        _;
+    }
 
     modifier notListed(
         address nftAddress,
@@ -118,6 +127,11 @@ contract NftMarketplace is ReentrancyGuard, Ownable {
         swapRouter = IUniswapV2Router02(router);
     }
 
+    function toggleNftWhitelistValue(address nftAdress) external nonReentrant onlyOwner {
+        bool value = whitelistedNfts[nftAddress];
+        whitelistedNfts[nftAddress] = !value;
+    }
+
     function setRetirementCertificateEscrow(
         address _retirementCertificateEscrow
     ) external nonReentrant onlyOwner {
@@ -134,6 +148,7 @@ contract NftMarketplace is ReentrancyGuard, Ownable {
         external
         notListed(nftAddress, tokenId, msg.sender)
         isOwner(nftAddress, tokenId, msg.sender)
+        isWhitelistedNft(nftAddress)
     {
         if (price <= 0) {
             revert PriceMustBeAboveZero();
@@ -199,9 +214,9 @@ contract NftMarketplace is ReentrancyGuard, Ownable {
         uint256 tokenId,
         string calldata beneficiaryString,
         string calldata retirementMessage
-    ) external payable isListed(nftAddress, tokenId) nonReentrant {
+    ) external payable isListed(nftAddress, tokenId) isWhitelistedNft(nftAddress) nonReentrant {
         Listing memory listedItem = s_listings[nftAddress][tokenId];
-        if (msg.value < listedItem.price) {
+        if (msg.value != listedItem.price) {
             revert PriceNotMet(nftAddress, tokenId, listedItem.price);
         }
 
