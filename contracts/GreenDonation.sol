@@ -34,6 +34,8 @@ contract GreenDonation is
     uint256 public periodFinish = 0;
     uint256 public rewardPerTokenStored;
 
+    uint256 public redemptionRate = 10;
+
     mapping(uint256 => uint256) public userRewardPerTokenPaid;
     mapping(uint256 => uint256) public rewards;
 
@@ -151,6 +153,13 @@ contract GreenDonation is
         stakeInterval = interval;
     }
 
+    function setRedemptionRate(
+        uint256 rate
+    ) external nonReentrant onlyOwner {
+        emit SetRedemptionRate(redemptionRate, rate);
+        redemptionRate = rate;
+    }
+
     function setSwapRouter(address router) external nonReentrant onlyOwner {
         emit SetSwapRouter(address(swapRotuer), router);
         swapRotuer = IUniswapV2Router02(router);
@@ -242,7 +251,7 @@ contract GreenDonation is
         if (reward > 0) {
             rewards[tree] = 0;
             lastClaimTimestamp[tree] = block.timestamp;
-            uint256 rewardsToSwapForTC02 = reward.mul(10).div(100);
+            uint256 rewardsToSwapForTC02 = reward.mul(redemptionRate).div(100);
             rewardsToken.safeTransfer(
                 msg.sender,
                 reward.sub(rewardsToSwapForTC02)
@@ -343,6 +352,7 @@ contract GreenDonation is
     /* ========== EVENTS ========== */
 
     event RewardAdded(uint256 reward);
+    event SetRedemptionRate(uint256 oldRate, uint256 newRate);
     event SetSwapRouter(address oldRouter, address newRouter);
     event SetClaimInterval(uint256 oldInterval, uint256 newInterval);
     event SetStakeInterval(uint256 oldInterval, uint256 newInterval);
