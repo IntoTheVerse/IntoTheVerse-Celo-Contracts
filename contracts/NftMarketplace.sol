@@ -39,7 +39,8 @@ contract NftMarketplace is ReentrancyGuard, Ownable {
     event SetRedemptionRate(uint256 oldRate, uint256 rate);
     event SetRetirementCertificateEscrow(address oldEscrow, address newEscrow);
     event SetSwapRouter(address swapRouter, address newSwapRouter);
-
+    event SetNftWhitelistValue(address nftAddress, bool oldValue, bool newValue);
+    
     constructor(
         address _swapRouter,
         address _tc02,
@@ -135,6 +136,7 @@ contract NftMarketplace is ReentrancyGuard, Ownable {
 
     function toggleNftWhitelistValue(address nftAdress) external nonReentrant onlyOwner {
         bool value = whitelistedNfts[nftAddress];
+        emit SetNftWhitelistValue(nftAdress, value, !value);
         whitelistedNfts[nftAddress] = !value;
     }
 
