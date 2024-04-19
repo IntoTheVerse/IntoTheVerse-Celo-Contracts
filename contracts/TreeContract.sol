@@ -254,20 +254,25 @@ contract TreeContract is Ownable, ERC721A {
 
     function downgradeTree(
         uint256 _tokenId,
-        uint256 noOfStakes
+        uint256 _balance
     ) external onlyGreenDonationContract {
         require(_exists(_tokenId), "Tree does not exist");
-        
+
+        uint256 minimumStake = GreenDonation(greenDonationContract).getMinimumStake();
+        uint256 minimumNoOfTimesStaked = _balance < minimumStake
+            ? 0
+            : _balance / minimumStake;
+
         uint256 treeLevel = 0;
-        if (noOfStakes < 1) {
+        if (minimumNoOfTimesStaked < 1) {
             treeLevel = 0;
-        } else if (noOfStakes > 1 && noOfStakes <= 5) {
+        } else if (minimumNoOfTimesStaked > 1 && minimumNoOfTimesStaked <= 5) {
             treeLevel = 1;
-        } else if (noOfStakes > 5 && noOfStakes <= 15) {
+        } else if (minimumNoOfTimesStaked > 5 && minimumNoOfTimesStaked <= 15) {
             treeLevel = 2;
-        } else if (noOfStakes > 15 && noOfStakes <= 30) {
+        } else if (minimumNoOfTimesStaked > 15 && minimumNoOfTimesStaked <= 30) {
             treeLevel = 3;
-        } else if (noOfStakes > 30){
+        } else if (minimumNoOfTimesStaked > 30){
             treeLevel = 4;
         }
 
