@@ -36,6 +36,10 @@ contract NftMarketplace is ReentrancyGuard, Ownable {
     IRetirementCertificates public retirementCertificate;
     MarketplaceRetirementCertificateEscrow public retirementCertificateEscrow;
 
+    event SetRedemptionRate(uint256 oldRate, uint256 rate);
+    event SetRetirementCertificateEscrow(address oldEscrow, address newEscrow);
+    event SetSwapRouter(address swapRouter, address newSwapRouter);
+
     constructor(
         address _swapRouter,
         address _tc02,
@@ -120,10 +124,12 @@ contract NftMarketplace is ReentrancyGuard, Ownable {
     }
 
     function setRedemptionRate(uint256 _rate) external nonReentrant onlyOwner {
+        emit SetRedemptionRate(redemptionRate, _rate);
         redemptionRate = _rate;
     }
 
     function setSwapRouter(address router) external nonReentrant onlyOwner {
+        emit SetSwapRouter(address(swapRouter), router)
         swapRouter = IUniswapV2Router02(router);
     }
 
@@ -135,6 +141,7 @@ contract NftMarketplace is ReentrancyGuard, Ownable {
     function setRetirementCertificateEscrow(
         address _retirementCertificateEscrow
     ) external nonReentrant onlyOwner {
+        emit SetRetirementCertificateEscrow(address(retirementCertificateEscrow), _retirementCertificateEscrow);
         retirementCertificateEscrow = MarketplaceRetirementCertificateEscrow(
             _retirementCertificateEscrow
         );
