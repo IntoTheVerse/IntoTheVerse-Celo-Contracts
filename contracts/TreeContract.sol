@@ -160,7 +160,7 @@ contract TreeContract is Ownable, ERC721A {
         string calldata retirementMessage
     ) external payable {
         uint256 supply = _totalMinted();
-        require(
+        require( // will restrict to 1 tree per user.
             _numberMinted(msg.sender) + 1 <= 1,
             "Exceed max mintable amount"
         );
@@ -266,7 +266,7 @@ contract TreeContract is Ownable, ERC721A {
         if (trees[_tokenId].level > 1) trees[_tokenId].level--;
     }
 
-    function _beforeTokenTransfers(
+    function _beforeTokenTransfers( // With this tree NFT is no longer burnable, transferable. It is only mintable.
 		address from,
 		address to,
 		uint256 tokenId,
