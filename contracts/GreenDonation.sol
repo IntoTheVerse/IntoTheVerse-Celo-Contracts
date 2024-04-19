@@ -40,7 +40,10 @@ contract GreenDonation is
     uint256 private _totalSupply;
     mapping(uint256 => uint256) private _balances;
 
+    uint256 public minimumStake = 1 ether; // 1 CELO.
     uint256 public claimInterval = 7 days;
+    uint256 public stakeInterval = 7 days;
+    mapping(uint256 => uint256) public lastStakeTimestamp;
     mapping(uint256 => uint256) public lastClaimTimestamp;
 
     ITC02 public tc02;
@@ -140,6 +143,13 @@ contract GreenDonation is
         claimInterval = interval;
     }
 
+    function setStakeInterval(
+        uint256 interval
+    ) external nonReentrant onlyOwner {
+        emit SetStakeInterval(stakeInterval, interval);
+        stakeInterval = interval;
+    }
+
     function setSwapRouter(address router) external nonReentrant onlyOwner {
         emit SetSwapRouter(address(swapRotuer), router);
         swapRotuer = IUniswapV2Router02(router);
@@ -165,8 +175,9 @@ contract GreenDonation is
     function stake(
         uint256 tree,
         uint256 amount
-    ) external nonReentrant updateReward(tree) onlyTreeOwner(tree, msg.sender) {
+    ) external nonReentrant updateReward(tree) onlyTreeOwner(tree, msg.sender) checkStakingInternval(tree) {
         require(amount > 0, "Cannot stake 0");
+        require(amount > minimumStake, "Minimum stake not met");
         _totalSupply = _totalSupply.add(amount);
         _balances[tree] = _balances[tree].add(amount);
         stakingToken.safeTransferFrom(msg.sender, address(this), amount);
@@ -315,11 +326,20 @@ contract GreenDonation is
         _;
     }
 
+    modifier checkStakingInternval(uint256 tree) {
+        require(
+            lastStakeTimestamp[tree] + stakeInterval <= block.timestamp,
+            "Cannot stake twice in same stake epoch"
+        );
+        _;
+    }
+
     /* ========== EVENTS ========== */
 
     event RewardAdded(uint256 reward);
     event SetSwapRouter(address oldRouter, address newRouter);
     event SetClaimInterval(uint256 oldInterval, uint256 newInterval);
+    event SetStakeInterval(uint256 oldInterval, uint256 newInterval);
     event Staked(uint256 indexed tree, address user, uint256 amount);
     event Withdrawn(uint256 indexed tree, address user, uint256 amount);
     event RewardPaid(uint256 indexed tree, address user, uint256 reward);
