@@ -77,6 +77,7 @@ contract GreenDonation is
             _retirementCertificateEscrow
         );
 
+        minimumStake = 1 * (10 ** IERC20(_stakingToken).decimals());
         rewardsToken.approve(address(swapRotuer), type(uint256).max);
     }
 
@@ -178,6 +179,7 @@ contract GreenDonation is
     ) external nonReentrant updateReward(tree) onlyTreeOwner(tree, msg.sender) checkStakingInternval(tree) {
         require(amount > 0, "Cannot stake 0");
         require(amount > minimumStake, "Minimum stake not met");
+        lastStakeTimestamp[tree] = block.timestamp;
         _totalSupply = _totalSupply.add(amount);
         _balances[tree] = _balances[tree].add(amount);
         stakingToken.safeTransferFrom(msg.sender, address(this), amount);
