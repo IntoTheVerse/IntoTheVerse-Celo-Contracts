@@ -265,4 +265,25 @@ contract TreeContract is Ownable, ERC721A {
         require(_exists(_tokenId), "Tree does not exist");
         if (trees[_tokenId].level > 1) trees[_tokenId].level--;
     }
+
+    function _beforeTokenTransfers(
+		address from,
+		address to,
+		uint256 tokenId,
+		uint256 batchSize
+	) internal virtual override {
+		if (from == address(0)) {
+			// allow mint
+			super._beforeTokenTransfer(from, to, tokenId, batchSize);
+		} else if (to == address(0)) {
+			// disallow burn
+			revert("Tree can not burn");
+		} else if (to != from) {
+			// disallow transfer
+			revert("Tree can not transfer");
+		} else {
+			// disallow other
+			revert("Illegal operation");
+		}
+	}
 }
