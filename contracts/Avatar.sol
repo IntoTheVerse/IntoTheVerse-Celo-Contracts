@@ -56,7 +56,7 @@ contract Avatar is Ownable, ERC721Enumerable {
         // Mint new Avatar NFT to the owner
         uint256 tokenId = totalSupply() + 1;
         _safeMint(msg.sender, tokenId);
-
+        _hasMintedAvatar[msg.sender] = true; // Update the mapping to make sure, one avatar per address.
         // Store information about the avatar
         avatars[tokenId] = AvatarInfo(tokenId, image, 0, false, msg.sender);
     }

@@ -1,3 +1,224 @@
+# Overview
+![image](https://github.com/IntoTheVerse/IntoTheVerse-Celo-Contracts/assets/43913734/afa530f6-320c-4c95-817b-4289754bd160)
+
+### TO BE AUDITED
+![image](https://github.com/IntoTheVerse/IntoTheVerse-Celo-Contracts/assets/43913734/e8c4dea0-1810-46f8-8d4b-e9d6eb1457ae)
+
+<img width="1095" alt="image" src="https://github.com/IntoTheVerse/IntoTheVerse-Celo-Contracts/assets/43913734/eff37a0e-befe-4cc2-be9a-48093952efd4">
+
+![image](https://github.com/IntoTheVerse/IntoTheVerse-Celo-Contracts/assets/43913734/dbb0628a-a241-4175-9f8e-b4cd106c99e6)
+
+![image](https://github.com/IntoTheVerse/IntoTheVerse-Celo-Contracts/assets/43913734/8f5c8876-2ffe-4488-acf3-8c34c1bfb151)
+
+![image](https://github.com/IntoTheVerse/IntoTheVerse-Celo-Contracts/assets/43913734/b57ab8a9-c51a-441d-93ad-ef331c573d57)
+
+## Tests in Hardhat
+
+```
+yarn test
+yarn run v1.22.21
+$ hardhat test
+
+
+  Avatar contract
+    Deployment
+      ✔ Should set the right owner (1022ms)
+      ✔ Should have the correct base URI
+    Avatar functionality
+      ✔ Should change avatar image
+      ✔ Should equip and remove equipment
+      ✔ Should award and remove badge
+
+  GreenDonation contract
+    - Access restricted functions
+      ✔  - Should setClaimInterval if owner (219ms)
+      ✔  - Should not setClaimInterval if not owner
+      ✔  - Should setRedemptionRate if owner
+      ✔  - Should not setRedemptionRate if not owner
+      ✔  - Should setSwapRouter if owner
+      ✔  - Should not setSwapRouter if not owner
+      ✔  - Should setTreeContract if owner
+      ✔  - Should not setTreeContract if owner
+      ✔  - Should setRetirementCertificateEscrow if owner
+      ✔  - Should not setRetirementCertificateEscrow if owner
+      ✔  - Should setRetirementCertificateEscrow if owner
+      ✔  - Should not notifyRewardAmount if owner
+    - Set rewards
+      ✔  - Should notifyRewardAmount properly
+    - Stake
+      ✔  - Should stake (68ms)
+      ✔  - Should not stake if not tree nft owner (66ms)
+    - Withdraw
+      ✔  - Should withdraw (79ms)
+      ✔  - Should not withdraw if not tree nft owner (73ms)
+    - Get reward
+      ✔  - Should fetch reward (137ms)
+      ✔  - Should not fetch reward if not nft owner (91ms)
+      ✔  - Should fetch reward multiple times (175ms)
+      ✔  - Should fetch reward as per setInterval (150ms)
+      ✔  - Should not fetch reward as per setInterval (122ms)
+
+  Marketplace contract
+    - Access restricted functions
+      ✔  - Should setRedemptionRate if owner (133ms)
+      ✔  - Should not setRedemptionRate if not owner
+      ✔  - Should setSwapRouter if owner
+      ✔  - Should not setSwapRouter if not owner
+      ✔  - Should setRetirementCertificateEscrow if owner
+      ✔  - Should not setRetirementCertificateEscrow if not owner
+    - List Item
+      ✔  - Should listItem
+      ✔  - Should not listItem if already listed
+      ✔  - Should not listItem if not nft owner
+      ✔  - Should not listItem if price <= 0
+      ✔  - Should not listItem if NFT not approved
+    - Cancel Listing
+      ✔  - Should cancelListing
+      ✔  - Should not cancelListing if not owner
+      ✔  - Should not cancelListing if not listed
+    - Update Listing
+      ✔  - Should updateListing
+      ✔  - Should not updateListing if not owner
+      ✔  - Should not cancelListing if not listed
+      ✔  - Should not cancelListing if newPrice = 0
+    - Buy Item
+      ✔  - Should buyItem (61ms)
+      ✔  - Should reflect buyItem state in MarketplaceRetirementCertificateEscrow (71ms)
+      ✔  - Should not buyItem if not listed
+      ✔  - Should not buyItem if not value < price (47ms)
+      ✔  - Should not buyItem if not value == 0 (45ms)
+
+  MarketplaceRetirementCertificateEscrow contract
+    - Access restricted functions
+      ✔  - Should setNFTMarketplace if owner (121ms)
+      ✔  - Should not setNFTMarketplace if not owner
+      ✔  - Should setRetirementCertificate if owner
+      ✔  - Should not setRetirementCertificate if not owner
+    - Claim Retirement Certificate
+      ✔  - Should claim retirement certificate from buying NFT on marketplace (88ms)
+      ✔  - Should not claim retirement certificate from buying NFT on marketplace if not NFT current owner (79ms)
+      ✔  - Should not affect other certificates when claimed 1 ceritificate (132ms)
+
+  RetirementCertificateEscrow contract
+    - Access restricted functions
+      ✔  - Should setGreenDonation if owner (158ms)
+      ✔  - Should not setGreenDonation if not owner
+      ✔  - Should setTreeContract if owner
+      ✔  - Should not setTreeContract if not owner
+      ✔  - Should setRetirementCertificate if owner
+      ✔  - Should not setRetirementCertificate if not owner
+    - Claim Certificate
+      ✔  - Should claim retirement certificate from staking (123ms)
+      ✔  - Should not claim retirement certificate from staking if not tree owner (115ms)
+      ✔  - Should claim retirement certificate from tree (120ms)
+      ✔  - Should claim retirement certificate from both tree and staking (125ms)
+      ✔  - Should not claim retirement certificate if not tree owner (113ms)
+      ✔  - Should not claim retirement certificate if already claimed (132ms)
+      ✔  - Should not affect other claim retirement certificate when 2 trees (223ms)
+      ✔  - Should not affect other claim retirement certificate (199ms)
+      ✔  - Should claim both retirement certificate (157ms)
+      ✔  - Should claim both retirement certificate (231ms)
+
+  Token contract
+    Deployment
+      ✔ Should set the right owner
+      ✔ Should assign the total supply of tokens to the owner
+    Transactions
+Transferring from 0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266 to 0x70997970c51812dc3a010c7d01b50e0d17dc79c8 50 tokens
+Transferring from 0x70997970c51812dc3a010c7d01b50e0d17dc79c8 to 0x3c44cdddb6a900fa2b585dd299e03d12fa4293bc 50 tokens
+      ✔ Should transfer tokens between accounts
+Transferring from 0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266 to 0x70997970c51812dc3a010c7d01b50e0d17dc79c8 50 tokens
+Transferring from 0x70997970c51812dc3a010c7d01b50e0d17dc79c8 to 0x3c44cdddb6a900fa2b585dd299e03d12fa4293bc 50 tokens
+      ✔ should emit Transfer events
+      ✔ Should fail if sender doesn't have enough tokens
+
+  TreeContract
+    - Access restricted functions
+      ✔  - Should set cost if owner (172ms)
+      ✔  - Should not set cost if not owner
+      ✔  - Should set green donation if owner
+      ✔  - Should not set green donation if not owner
+      ✔  - Should set base uri if owner
+      ✔  - Should not set base uri if not owner
+      ✔  - Should withdraw if owner
+      ✔  - Should withdraw if owner
+    - Tree levels
+      ✔  - Should water tree if not green donation
+      ✔  - Should water tree if not green donation
+      ✔  - Should downgrade tree if not green donation (44ms)
+    - Mint
+      ✔  - Should mint 1 token
+      ✔  - Should mint 10 token
+      ✔  - Should mint 1 token properly when cost is 1 ETH
+      ✔  - Should mint 8 token properly when cost is 1 ETH
+      ✔  - Should not mint 8 token properly when cost is 1 ETH but less is sent
+      ✔  - Should not mint 1 token properly when cost is 1 ETH and less amount is sent
+      ✔  - Should not mint 2 token properly when cost is 1 ETH and less amount is sent
+      ✔  - Should mint 10 token through out (52ms)
+      ✔  - Should mint 10 token at once
+      ✔  - Should not mint more than 10 token at once
+      ✔  - Should not mint more than 10 token through out
+
+
+  100 passing (6s)
+
+✨  Done in 6.60s.
+
+
+
+```
+
+
+Transaction hashes for all functionality:
+
+
+Listing NFT...
+ - Token list tx hash is:-  `0x9e1ef80169215d114d94126e20829fc8ec90de07c11acc241a0c70edb260100c`
+  Update listing NFT...
+ - Update listing tx hash is:-  `0x90bc011f05e64ee3fbc678ba85fc9b8d6a84695e538630df40d8f71c6d956e02`  
+Cancel NFT listing...
+ - Token cancel list tx hash is:-  `0x3478e904f1c3b61ed2b573064aa180aed96dcbf683fa9411649f8027f4bb8d99`  
+Listing NFT again...
+ - Token list tx hash is:-    `0xa3038b775d0086e60593c271d9a795745ab849eec7efdb8fecb698d1d195f429`  
+Buying NFT...
+ - Buy NFT Tx hash is:-  `0x6c71ed35547d16d3161aa404891042968c5ca31a2734df16f011852d27784d7b`  
+Claiming retirement certificate...
+ - Claim retirement certificate Tx hash is:-  `0x08a20d71d3e74b286c74c392a999ef2653ef88bc693ee810baa60a0dcc2a6924`  
+Withdraw NFT income...
+ - Withdraw Tx hash is:-  `0x3c76880381f8f7f7fa5bfeda93b90ce077f532457e282aa73600e079d9d600a2`  
+Minting TreeContract...
+ - Tree mint tx hash is:-  `0xa350f9037b4a50efa86d9c61ef071dff51d95e09caf585f58d40cb8c36f676cb`
+
+Staking...
+ - Stake tx hash is:-   `0x371f4cf5792c26923ea57f08246e08224450cb2dc987c7cd6e71f3c181caedf8`
+
+Claiming minting tree retirement certificate...
+ - Claim certificate from minting tree tx hash is:-  `0x38bf3f9737074ef3e38d1c69f63e67d3f81bb7568865b37db46eedf513bd630c`
+
+Claiming rewards...
+ - Setting claimInterval to 0 for allowing claim more than once in demo env.
+ - You have currently earned 0.0017361111111111 RWD reward tokens
+ - Claim tx hash is:-  `0x44c93a48fe6a3a21715821a688c50a2590c9bae7c3ba8fc58480a1f1aded30f2`
+
+Claiming rewards retirement certificate...
+ - Claim certificate from rewards tx hash is:-  `0x5af47102233a642f62a3136fccd98ba595773acaa1f871938630366d70f8c568`
+
+### Transaction 1:
+
+[https://alfajores.celoscan.io/tx/0x8c18692802050dc39a1049ec9747e6b4fa06ac3645b0745af83317b7fbba3990](https://alfajores.celoscan.io/tx/0x8c18692802050dc39a1049ec9747e6b4fa06ac3645b0745af83317b7fbba3990)
+
+When a tree is minted, 10% of the value (msg.value) is offset (for which we can see that a retirement certificate is minted) and 90% of the value stays in the tree contract. Along with retirement certificate the tree nft is also minted.
+
+### Transaction 2:
+
+[https://alfajores.celoscan.io/tx/0xb8d24a479e07b802aff69dffc7b75f641e3925059df3c0ac404c87352bbfca3f](https://alfajores.celoscan.io/tx/0xb8d24a479e07b802aff69dffc7b75f641e3925059df3c0ac404c87352bbfca3f)
+
+This is a get rewards transaction- which transfers the rewards earned from staking. The logic here is same as the previous logic.
+
+
+
+
+
 # Hardhat Boilerplate
 
 This repository contains a sample project that you can use as the starting point

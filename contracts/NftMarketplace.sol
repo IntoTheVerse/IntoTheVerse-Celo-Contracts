@@ -20,6 +20,7 @@ error NoProceeds();
 error NotOwner();
 error NotApprovedForMarketplace();
 error PriceMustBeAboveZero();
+error NFTNotWhilelisted(address nftAddress);
 
 contract NftMarketplace is ReentrancyGuard, Ownable {
     struct Listing {
@@ -35,6 +36,11 @@ contract NftMarketplace is ReentrancyGuard, Ownable {
     IRetirementCertificates public retirementCertificate;
     MarketplaceRetirementCertificateEscrow public retirementCertificateEscrow;
 
+    event SetRedemptionRate(uint256 oldRate, uint256 rate);
+    event SetRetirementCertificateEscrow(address oldEscrow, address newEscrow);
+    event SetSwapRouter(address swapRouter, address newSwapRouter);
+    event SetNftWhitelistValue(address nftAddress, bool oldValue, bool newValue);
+    
     constructor(
         address _swapRouter,
         address _tc02,
@@ -75,15 +81,22 @@ contract NftMarketplace is ReentrancyGuard, Ownable {
     );
 
     mapping(address => uint256) private s_proceeds;
+    mapping (address => bool) public whitelistedNfts;
     mapping(address => mapping(uint256 => Listing)) private s_listings;
+
+    modifier isWhitelistedNft(address nftAddress) {
+        if (!whitelistedNfts[nftAddress]) {
+            revert NFTNotWhilelisted(nftAddress);
+        }
+        _;
+    }
 
     modifier notListed(
         address nftAddress,
         uint256 tokenId,
         address owner
     ) {
-        Listing memory listing = s_listings[nftAddress][tokenId];
-        if (listing.price > 0) {
+        if (s_listings[nftAddress][tokenId].price > 0) {
             revert AlreadyListed(nftAddress, tokenId);
         }
         _;
@@ -111,16 +124,25 @@ contract NftMarketplace is ReentrancyGuard, Ownable {
     }
 
     function setRedemptionRate(uint256 _rate) external nonReentrant onlyOwner {
+        emit SetRedemptionRate(redemptionRate, _rate);
         redemptionRate = _rate;
     }
 
     function setSwapRouter(address router) external nonReentrant onlyOwner {
+        emit SetSwapRouter(address(swapRouter), router);
         swapRouter = IUniswapV2Router02(router);
+    }
+
+    function toggleNftWhitelistValue(address nftAddress) external nonReentrant onlyOwner {
+        bool value = whitelistedNfts[nftAddress];
+        emit SetNftWhitelistValue(nftAddress, value, !value);
+        whitelistedNfts[nftAddress] = !value;
     }
 
     function setRetirementCertificateEscrow(
         address _retirementCertificateEscrow
     ) external nonReentrant onlyOwner {
+        emit SetRetirementCertificateEscrow(address(retirementCertificateEscrow), _retirementCertificateEscrow);
         retirementCertificateEscrow = MarketplaceRetirementCertificateEscrow(
             _retirementCertificateEscrow
         );
@@ -134,6 +156,7 @@ contract NftMarketplace is ReentrancyGuard, Ownable {
         external
         notListed(nftAddress, tokenId, msg.sender)
         isOwner(nftAddress, tokenId, msg.sender)
+        isWhitelistedNft(nftAddress)
     {
         if (price <= 0) {
             revert PriceMustBeAboveZero();
@@ -199,9 +222,9 @@ contract NftMarketplace is ReentrancyGuard, Ownable {
         uint256 tokenId,
         string calldata beneficiaryString,
         string calldata retirementMessage
-    ) external payable isListed(nftAddress, tokenId) nonReentrant {
+    ) external payable isListed(nftAddress, tokenId) isWhitelistedNft(nftAddress) nonReentrant {
         Listing memory listedItem = s_listings[nftAddress][tokenId];
-        if (msg.value < listedItem.price) {
+        if (msg.value != listedItem.price) {
             revert PriceNotMet(nftAddress, tokenId, listedItem.price);
         }
 
@@ -209,7 +232,7 @@ contract NftMarketplace is ReentrancyGuard, Ownable {
         uint256 retirementCertificateTokenId = retirementCertificate
             .mintCertificate(
                 address(this), // Contract will get the certificate.
-                "Into The Verse Tree User",
+                "Into The Verse Marketplace User",
                 msg.sender, // But, msg.sender will be the beneficiary.
                 beneficiaryString,
                 retirementMessage,
