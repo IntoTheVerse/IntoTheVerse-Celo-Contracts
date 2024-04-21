@@ -9,6 +9,7 @@ import {IUniswapV2Router02} from "@uniswap/v2-periphery/contracts/interfaces/IUn
 import {ERC721Upgradeable} from "@openzeppelin/contracts-upgradeable/token/ERC721/ERC721Upgradeable.sol";
 
 import {ITC02} from "./interfaces/ITC02.sol";
+import {GreenDonation} from "./GreenDonation.sol";
 import {RetirementCertificateEscrow} from "./RetirementCertificateEscrow.sol";
 import {IRetirementCertificates} from "./interfaces/IRetirementCertificates.sol";
 
@@ -133,16 +134,16 @@ contract TreeContract is Ownable, ERC721A {
         return this.onERC721Received.selector;
     }
 
-    function _swapForTC02(uint256 amountToSwap) internal returns (uint256) {
+    function _swapForTC02(uint256 amountToSwap, uint256 minAmountOut, uint256 deadline) internal returns (uint256) {
         address[] memory path = new address[](2);
         path[0] = address(wrappedNativeToken);
         path[1] = address(tc02);
         uint256[] memory amountSwapped = swapRouter.swapExactTokensForTokens(
             amountToSwap,
-            0, // TOOD: use proper method to fetch amount for TC02 to avoid slippage.
+            minAmountOut,
             path,
             address(this),
-            block.timestamp
+            deadline
         );
         return amountSwapped[amountSwapped.length - 1];
     }
@@ -156,20 +157,22 @@ contract TreeContract is Ownable, ERC721A {
     }
 
     function mint(
-        uint256 _quantity,
         string calldata beneficiaryString,
-        string calldata retirementMessage
+        string calldata retirementMessage,
+        uint256 minAmountOut,
+        uint256 deadline
     ) external payable {
         uint256 supply = _totalMinted();
-        require(
-            _numberMinted(msg.sender) + _quantity <= 10,
+        require( // will restrict to 1 tree per user.
+            _numberMinted(msg.sender) + 1 <= 1,
             "Exceed max mintable amount"
         );
-        require(supply + _quantity <= maxSupply, "Exceed maximum supply");
-        require(msg.value == cost * _quantity, "Incorrect value sent");
+        require(supply + 1 <= maxSupply, "Exceed maximum supply");
+        require(msg.value == cost * 1, "Incorrect value sent");
         uint256 _nextTokenId = _nextTokenId();
-        _mint(msg.sender, _quantity);
-
+        _mint(msg.sender, 1);
+        trees[_nextTokenId].lastWatered = 0;
+        trees[_nextTokenId].level = 0; // Default tree level at 0
         uint256 retirementCertificateTokenId = retirementCertificates
             .mintCertificate(
                 address(this), // Contract will get the certificate.
@@ -178,7 +181,7 @@ contract TreeContract is Ownable, ERC721A {
                 beneficiaryString,
                 retirementMessage,
                 _retireTC02Tokens(
-                    _swapForTC02((msg.value * redemptionRate) / 100)
+                    _swapForTC02((msg.value * redemptionRate) / 100, minAmountOut, deadline)
                 )
             );
 
@@ -191,36 +194,6 @@ contract TreeContract is Ownable, ERC721A {
             _nextTokenId,
             retirementCertificateTokenId
         );
-    }
-
-    // New function to water a tree
-    function waterTree(uint256 _tokenId) external onlyGreenDonationContract {
-        require(_exists(_tokenId), "Tree does not exist");
-
-        // Calculate decay
-        uint256 decayedLevels = _calculateDecay(_tokenId);
-
-        // Update tree's level after decay (if any)
-        if (decayedLevels > 0) {
-            if (trees[_tokenId].level > decayedLevels) {
-                trees[_tokenId].level -= decayedLevels;
-            } else {
-                trees[_tokenId].level = 1; // Setting a minimum level for simplicity
-            }
-        }
-
-        // Update the lastWatered timestamp
-        trees[_tokenId].lastWatered = block.timestamp;
-        trees[_tokenId].level++;
-    }
-
-    function _calculateDecay(uint256 _tokenId) internal view returns (uint256) {
-        uint256 elapsedTime = block.timestamp - trees[_tokenId].lastWatered;
-
-        // Calculate the number of decay periods that have passed
-        uint256 numberOfPeriods = elapsedTime / decayPeriod;
-
-        return numberOfPeriods * decayRate;
     }
 
     /**
@@ -259,10 +232,72 @@ contract TreeContract is Ownable, ERC721A {
         return trees[_tokenId].lastWatered;
     }
 
+    function upgradeTree(uint256 _tokenId, uint256 noOfStakes) external onlyGreenDonationContract {
+        require(_exists(_tokenId), "Tree does not exist");
+
+        uint256 treeLevel = 0;
+        if (noOfStakes < 1) {
+            treeLevel = 0;
+        } else if (noOfStakes > 1 && noOfStakes <= 5) {
+            treeLevel = 1;
+        } else if (noOfStakes > 5 && noOfStakes <= 15) {
+            treeLevel = 2;
+        } else if (noOfStakes > 15 && noOfStakes <= 30) {
+            treeLevel = 3;
+        } else if (noOfStakes > 30){
+            treeLevel = 4;
+        }
+
+        trees[_tokenId].lastWatered = block.timestamp;
+        trees[_tokenId].level = treeLevel;
+    }
+
     function downgradeTree(
-        uint256 _tokenId
+        uint256 _tokenId,
+        uint256 _balance
     ) external onlyGreenDonationContract {
         require(_exists(_tokenId), "Tree does not exist");
-        if (trees[_tokenId].level > 1) trees[_tokenId].level--;
+
+        uint256 minimumStake = GreenDonation(greenDonationContract).getMinimumStake();
+        uint256 minimumNoOfTimesStaked = _balance < minimumStake
+            ? 0
+            : _balance / minimumStake;
+
+        uint256 treeLevel = 0;
+        if (minimumNoOfTimesStaked < 1) {
+            treeLevel = 0;
+        } else if (minimumNoOfTimesStaked > 1 && minimumNoOfTimesStaked <= 5) {
+            treeLevel = 1;
+        } else if (minimumNoOfTimesStaked > 5 && minimumNoOfTimesStaked <= 15) {
+            treeLevel = 2;
+        } else if (minimumNoOfTimesStaked > 15 && minimumNoOfTimesStaked <= 30) {
+            treeLevel = 3;
+        } else if (minimumNoOfTimesStaked > 30){
+            treeLevel = 4;
+        }
+
+        trees[_tokenId].lastWatered = block.timestamp;
+        trees[_tokenId].level = treeLevel;
     }
+
+    function _beforeTokenTransfers( // With this tree NFT is no longer burnable, transferable. It is only mintable.
+		address from,
+		address to,
+		uint256 tokenId,
+		uint256 batchSize
+	) internal virtual override {
+		if (from == address(0)) {
+			// allow mint
+			super._beforeTokenTransfers(from, to, tokenId, batchSize);
+		} else if (to == address(0)) {
+			// disallow burn
+			revert("Tree can not burn");
+		} else if (to != from) {
+			// disallow transfer
+			revert("Tree can not transfer");
+		} else {
+			// disallow other
+			revert("Illegal operation");
+		}
+	}
 }

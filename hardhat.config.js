@@ -11,9 +11,24 @@ require("./tasks/faucet");
 module.exports = {
   solidity: {
     compilers: [
-      { version: "0.4.18" },
-      { version: "0.5.1" },
-      { version: "0.5.16" },
+      { version: "0.4.18", settings: {
+        optimizer: {
+          enabled: true,
+          runs: 1000
+        }
+      } },
+      { version: "0.5.1", settings: {
+        optimizer: {
+          enabled: true,
+          runs: 1000
+        }
+      } },
+      { version: "0.5.16", settings: {
+        optimizer: {
+          enabled: true,
+          runs: 1000
+        }
+      } },
       {
         version: "0.6.6",
         settings: {
@@ -23,23 +38,48 @@ module.exports = {
           }
         }
       },
-      { version: "0.7.6" },
-      { version: "0.8.0" },
-      { version: "0.8.9" },
-      { version: "0.8.17" },
-      { version: "0.8.20" }
+      { version: "0.7.6", settings: {
+        optimizer: {
+          enabled: true,
+          runs: 1000
+        }
+      } },
+      { version: "0.8.0", settings: {
+        optimizer: {
+          enabled: true,
+          runs: 1000
+        }
+      } },
+      { version: "0.8.9", settings: {
+        optimizer: {
+          enabled: true,
+          runs: 10000
+        }
+      } },
+      { version: "0.8.17", settings: {
+        optimizer: {
+          enabled: true,
+          runs: 1000
+        }
+      }},
+      { version: "0.8.20", settings: {
+        optimizer: {
+          enabled: true,
+          runs: 1000
+        }
+      } }
     ]
   },
   networks: {
-    goerli: {
-      url: `https://goerli.infura.io/v3/${process.env.INFURA_API_KEY}`, // Replace with your Infura API key
-      accounts: [process.env.PRIVATE_KEY, process.env.PRIVATE_KEY2],
-    },
-    alfajores: {
-     url: "https://alfajores-forno.celo-testnet.org",
-     accounts: [process.env.PRIVATE_KEY, process.env.PRIVATE_KEY2],
-     chainId: 44787
-   }
+  //   goerli: {
+  //     url: `https://goerli.infura.io/v3/${process.env.INFURA_API_KEY}`, // Replace with your Infura API key
+  //     accounts: [process.env.PRIVATE_KEY, process.env.PRIVATE_KEY2],
+  //   },
+  //   alfajores: {
+  //    url: "https://alfajores-forno.celo-testnet.org",
+  //    accounts: [process.env.PRIVATE_KEY, process.env.PRIVATE_KEY2],
+  //    chainId: 44787
+  //  }
   },
 };
 

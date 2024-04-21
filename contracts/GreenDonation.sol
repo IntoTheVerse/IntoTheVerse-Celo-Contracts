@@ -3,6 +3,7 @@ pragma solidity ^0.8.9;
 
 import {Math} from "@openzeppelin/contracts/utils/math/Math.sol";
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
+import {ERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {ReentrancyGuard} from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
@@ -34,14 +35,20 @@ contract GreenDonation is
     uint256 public periodFinish = 0;
     uint256 public rewardPerTokenStored;
 
+    uint256 public redemptionRate = 10;
+    
     mapping(uint256 => uint256) public userRewardPerTokenPaid;
     mapping(uint256 => uint256) public rewards;
 
     uint256 private _totalSupply;
     mapping(uint256 => uint256) private _balances;
 
+    uint256 public minimumStake = 1 ether; // 1 CELO.
     uint256 public claimInterval = 7 days;
+    uint256 public stakeInterval = 7 days;
+    mapping(uint256 => uint256) public lastStakeTimestamp;
     mapping(uint256 => uint256) public lastClaimTimestamp;
+    mapping(uint256 => uint256) public noOfTimesStakedForTree;
 
     ITC02 public tc02;
     TreeContract public treeContract;
@@ -73,7 +80,8 @@ contract GreenDonation is
         retirementCertificateEscrow = RetirementCertificateEscrow(
             _retirementCertificateEscrow
         );
-
+        // adjust minimum stake as per token decimals.
+        minimumStake = 1 * (10 ** ERC20(_stakingToken).decimals());
         rewardsToken.approve(address(swapRotuer), type(uint256).max);
     }
 
@@ -89,6 +97,14 @@ contract GreenDonation is
 
     function lastTimeRewardApplicable() public view returns (uint256) {
         return Math.min(block.timestamp, periodFinish);
+    }
+
+    function getMinimumStake() public view returns (uint256) {
+        return minimumStake;
+    }
+
+    function getNoOfTimesStakeForTree(uint256 tree) public view returns (uint256) {
+        return noOfTimesStakedForTree[tree];
     }
 
     function onERC721Received(
@@ -140,6 +156,20 @@ contract GreenDonation is
         claimInterval = interval;
     }
 
+    function setStakeInterval(
+        uint256 interval
+    ) external nonReentrant onlyOwner {
+        emit SetStakeInterval(stakeInterval, interval);
+        stakeInterval = interval;
+    }
+
+    function setRedemptionRate(
+        uint256 rate
+    ) external nonReentrant onlyOwner {
+        emit SetRedemptionRate(redemptionRate, rate);
+        redemptionRate = rate;
+    }
+
     function setSwapRouter(address router) external nonReentrant onlyOwner {
         emit SetSwapRouter(address(swapRotuer), router);
         swapRotuer = IUniswapV2Router02(router);
@@ -165,13 +195,16 @@ contract GreenDonation is
     function stake(
         uint256 tree,
         uint256 amount
-    ) external nonReentrant updateReward(tree) onlyTreeOwner(tree, msg.sender) {
+    ) external nonReentrant updateReward(tree) onlyTreeOwner(tree, msg.sender) checkStakingInternval(tree) {
         require(amount > 0, "Cannot stake 0");
+        require(amount > minimumStake, "Minimum stake not met");
+        lastStakeTimestamp[tree] = block.timestamp;
+        noOfTimesStakedForTree[tree] = noOfTimesStakedForTree[tree]++;
         _totalSupply = _totalSupply.add(amount);
         _balances[tree] = _balances[tree].add(amount);
         stakingToken.safeTransferFrom(msg.sender, address(this), amount);
         emit Staked(tree, msg.sender, amount);
-        treeContract.waterTree(tree);
+        treeContract.upgradeTree(tree, noOfTimesStakedForTree[tree]);
     }
 
     function withdraw(
@@ -182,22 +215,25 @@ contract GreenDonation is
         _totalSupply = _totalSupply.sub(amount);
         _balances[tree] = _balances[tree].sub(amount);
         stakingToken.safeTransfer(msg.sender, amount);
+        noOfTimesStakedForTree[tree] = noOfTimesStakedForTree[tree]--; // Subtract no. of stakes since this is a reward.
         emit Withdrawn(tree, msg.sender, amount);
-        treeContract.downgradeTree(tree);
+        treeContract.downgradeTree(tree, _balances[tree]);
     }
 
     function _swapRewardTokenForTC02(
-        uint256 rewardsAmountToSwap
+        uint256 rewardsAmountToSwap,
+        uint256 minOut,
+        uint256 deadline
     ) internal returns (uint256) {
         address[] memory path = new address[](2);
         path[0] = address(rewardsToken);
         path[1] = address(tc02);
         uint256[] memory amountSwapped = swapRotuer.swapExactTokensForTokens(
             rewardsAmountToSwap,
-            0, // TOOD: use proper method to fetch amount for TC02 to avoid slippage.
+            minOut,
             path,
             address(this),
-            block.timestamp
+            deadline
         );
         return amountSwapped[amountSwapped.length - 1];
     }
@@ -212,8 +248,8 @@ contract GreenDonation is
 
     function getReward(
         uint256 tree,
-        string calldata beneficiaryString,
-        string calldata retirementMessage
+        uint256 minOut,
+        uint256 deadline
     )
         public
         nonReentrant
@@ -225,7 +261,7 @@ contract GreenDonation is
         if (reward > 0) {
             rewards[tree] = 0;
             lastClaimTimestamp[tree] = block.timestamp;
-            uint256 rewardsToSwapForTC02 = reward.mul(10).div(100);
+            uint256 rewardsToSwapForTC02 = reward.mul(redemptionRate).div(100);
             rewardsToken.safeTransfer(
                 msg.sender,
                 reward.sub(rewardsToSwapForTC02)
@@ -236,10 +272,10 @@ contract GreenDonation is
                     address(this), // Contract will get the certificate.
                     "Into The Verse Green Donation User",
                     msg.sender, // But, msg.sender will be the beneficiary.
-                    beneficiaryString,
-                    retirementMessage,
+                    "Into The Vesre Green Donation Beneficiary",
+                    "Into the Verse Green Donation Retirement",
                     _retireTC02Tokens(
-                        _swapRewardTokenForTC02(rewardsToSwapForTC02)
+                        _swapRewardTokenForTC02(rewardsToSwapForTC02, minOut, deadline)
                     )
                 );
             ERC721Upgradeable(address(retirementCertificate)).approve(
@@ -255,11 +291,11 @@ contract GreenDonation is
 
     function exit(
         uint256 tree,
-        string calldata beneficiaryString,
-        string calldata retirementMessage
+        uint256 minOut,
+        uint256 deadline
     ) external {
         withdraw(tree, _balances[tree]);
-        getReward(tree, beneficiaryString, retirementMessage);
+        getReward(tree, minOut, deadline);
     }
 
     /* ========== RESTRICTED FUNCTIONS ========== */
@@ -315,11 +351,21 @@ contract GreenDonation is
         _;
     }
 
+    modifier checkStakingInternval(uint256 tree) {
+        require(
+            lastStakeTimestamp[tree] + stakeInterval <= block.timestamp,
+            "Cannot stake twice in same stake epoch"
+        );
+        _;
+    }
+
     /* ========== EVENTS ========== */
 
     event RewardAdded(uint256 reward);
+    event SetRedemptionRate(uint256 oldRate, uint256 newRate);
     event SetSwapRouter(address oldRouter, address newRouter);
     event SetClaimInterval(uint256 oldInterval, uint256 newInterval);
+    event SetStakeInterval(uint256 oldInterval, uint256 newInterval);
     event Staked(uint256 indexed tree, address user, uint256 amount);
     event Withdrawn(uint256 indexed tree, address user, uint256 amount);
     event RewardPaid(uint256 indexed tree, address user, uint256 reward);
