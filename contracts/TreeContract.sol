@@ -134,7 +134,11 @@ contract TreeContract is Ownable, ERC721A {
         return this.onERC721Received.selector;
     }
 
-    function _swapForTC02(uint256 amountToSwap, uint256 minAmountOut, uint256 deadline) internal returns (uint256) {
+    function _swapForTC02(
+        uint256 amountToSwap,
+        uint256 minAmountOut,
+        uint256 deadline
+    ) internal returns (uint256) {
         address[] memory path = new address[](2);
         path[0] = address(wrappedNativeToken);
         path[1] = address(tc02);
@@ -181,7 +185,11 @@ contract TreeContract is Ownable, ERC721A {
                 beneficiaryString,
                 retirementMessage,
                 _retireTC02Tokens(
-                    _swapForTC02((msg.value * redemptionRate) / 100, minAmountOut, deadline)
+                    _swapForTC02(
+                        (msg.value * redemptionRate) / 100,
+                        minAmountOut,
+                        deadline
+                    )
                 )
             );
 
@@ -232,19 +240,22 @@ contract TreeContract is Ownable, ERC721A {
         return trees[_tokenId].lastWatered;
     }
 
-    function upgradeTree(uint256 _tokenId, uint256 noOfStakes) external onlyGreenDonationContract {
+    function upgradeTree(
+        uint256 _tokenId,
+        uint256 noOfStakes
+    ) external onlyGreenDonationContract {
         require(_exists(_tokenId), "Tree does not exist");
 
         uint256 treeLevel = 0;
-        if (noOfStakes < 1) {
+        if (noOfStakes == 0) {
             treeLevel = 0;
-        } else if (noOfStakes > 1 && noOfStakes <= 5) {
+        } else if (noOfStakes >= 1 && noOfStakes <= 5) {
             treeLevel = 1;
         } else if (noOfStakes > 5 && noOfStakes <= 15) {
             treeLevel = 2;
         } else if (noOfStakes > 15 && noOfStakes <= 30) {
             treeLevel = 3;
-        } else if (noOfStakes > 30){
+        } else if (noOfStakes > 30) {
             treeLevel = 4;
         }
 
@@ -258,7 +269,8 @@ contract TreeContract is Ownable, ERC721A {
     ) external onlyGreenDonationContract {
         require(_exists(_tokenId), "Tree does not exist");
 
-        uint256 minimumStake = GreenDonation(greenDonationContract).getMinimumStake();
+        uint256 minimumStake = GreenDonation(greenDonationContract)
+            .getMinimumStake();
         uint256 minimumNoOfTimesStaked = _balance < minimumStake
             ? 0
             : _balance / minimumStake;
@@ -270,9 +282,11 @@ contract TreeContract is Ownable, ERC721A {
             treeLevel = 1;
         } else if (minimumNoOfTimesStaked > 5 && minimumNoOfTimesStaked <= 15) {
             treeLevel = 2;
-        } else if (minimumNoOfTimesStaked > 15 && minimumNoOfTimesStaked <= 30) {
+        } else if (
+            minimumNoOfTimesStaked > 15 && minimumNoOfTimesStaked <= 30
+        ) {
             treeLevel = 3;
-        } else if (minimumNoOfTimesStaked > 30){
+        } else if (minimumNoOfTimesStaked > 30) {
             treeLevel = 4;
         }
 
@@ -280,24 +294,25 @@ contract TreeContract is Ownable, ERC721A {
         trees[_tokenId].level = treeLevel;
     }
 
-    function _beforeTokenTransfers( // With this tree NFT is no longer burnable, transferable. It is only mintable.
-		address from,
-		address to,
-		uint256 tokenId,
-		uint256 batchSize
-	) internal virtual override {
-		if (from == address(0)) {
-			// allow mint
-			super._beforeTokenTransfers(from, to, tokenId, batchSize);
-		} else if (to == address(0)) {
-			// disallow burn
-			revert("Tree can not burn");
-		} else if (to != from) {
-			// disallow transfer
-			revert("Tree can not transfer");
-		} else {
-			// disallow other
-			revert("Illegal operation");
-		}
-	}
+    function _beforeTokenTransfers(
+        // With this tree NFT is no longer burnable, transferable. It is only mintable.
+        address from,
+        address to,
+        uint256 tokenId,
+        uint256 batchSize
+    ) internal virtual override {
+        if (from == address(0)) {
+            // allow mint
+            super._beforeTokenTransfers(from, to, tokenId, batchSize);
+        } else if (to == address(0)) {
+            // disallow burn
+            revert("Tree can not burn");
+        } else if (to != from) {
+            // disallow transfer
+            revert("Tree can not transfer");
+        } else {
+            // disallow other
+            revert("Illegal operation");
+        }
+    }
 }
