@@ -247,7 +247,7 @@ contract TreeContract is Ownable, ERC721A {
         require(_exists(_tokenId), "Tree does not exist");
 
         uint256 treeLevel = 0;
-        if (noOfStakes == 0) {
+        if (noOfStakes <= 0) {
             treeLevel = 0;
         } else if (noOfStakes >= 1 && noOfStakes <= 5) {
             treeLevel = 1;

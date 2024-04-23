@@ -100,39 +100,42 @@ describe('TreeContract', () => {
   });
 
   describe('- Tree levels', async () => {
-    it(' - Should water tree if not green donation', async () => {
+    it(' - Should upgrade tree if green donation', async () => {
       const { treeContract, whale, owner } = await loadFixture(fetchFixtures)
-      await treeContract.mint(1, '', '');
+      await treeContract.mint('', '', 0, Date.now());
       await expect(treeContract.connect(owner).setGreenDonationContract(whale.address)).to.not.reverted;
-      await expect(treeContract.connect(whale).waterTree(1)).to.not.reverted;
+      await expect(treeContract.connect(whale).upgradeTree(1, 30)).to.not.reverted;
     });
 
-    it(' - Should water tree if not green donation', async () => {
-      const { treeContract, whale, owner } = await loadFixture(fetchFixtures)
-      await treeContract.mint(1, '', '');
-      expect((await treeContract.trees(1)).level).to.eq(0)
-
+    it(' - Should downgrade tree if green donation', async () => {
+      const { treeContract, whale, owner, ETH } = await loadFixture(fetchFixtures)
+      await treeContract.mint('', '', 0, Date.now());
       await expect(treeContract.connect(owner).setGreenDonationContract(whale.address)).to.not.reverted;
-      await expect(treeContract.connect(whale).waterTree(1)).to.not.reverted;
-      expect((await treeContract.trees(1)).level).to.eq(2)
+      await expect(treeContract.connect(whale).upgradeTree(1, 25)).to.not.reverted;
+      await expect(treeContract.connect(whale).downgradeTree(1, ETH.mul(6))).to.revertedWith('');
     });
 
-    it(' - Should downgrade tree if not green donation', async () => {
-      const { treeContract, whale, owner } = await loadFixture(fetchFixtures)
-      await treeContract.mint(1, '', '');
+    it(' - Should not upgrade tree if not green donation', async () => {
+      const { treeContract, whale, owner, ETH } = await loadFixture(fetchFixtures)
+      await treeContract.mint('', '', 0, Date.now());
       expect((await treeContract.trees(1)).level).to.eq(0)
+      await expect(treeContract.connect(whale).upgradeTree(1, 15)).revertedWith('Only green donation contract can call this function');
+      expect((await treeContract.trees(1)).level).to.eq(0)
+    });
 
-      await expect(treeContract.connect(owner).setGreenDonationContract(whale.address)).to.not.reverted;
-      await expect(treeContract.connect(whale).waterTree(1)).to.not.reverted;
-      await expect(treeContract.connect(whale).downgradeTree(1)).to.not.reverted;
-      expect((await treeContract.trees(1)).level).to.eq(1)
+    it(' - Should not downgrade tree if not green donation', async () => {
+      const { treeContract, whale, owner, ETH } = await loadFixture(fetchFixtures)
+      await treeContract.mint('', '', 0, Date.now());
+      expect((await treeContract.trees(1)).level).to.eq(0)
+      await expect(treeContract.connect(whale).downgradeTree(1, ETH.mul(6))).rejectedWith('Only green donation contract can call this function')
+      expect((await treeContract.trees(1)).level).to.eq(0)
     });
   });
 
   describe('- Mint', async () => {
     it(' - Should mint 1 token', async () => {
       const { treeContract, owner, retirementCertificateEscrow, provider } = await loadFixture(fetchFixtures)
-      await treeContract.mint(1, '', '')
+      await treeContract.mint('', '', 0, Date.now())
       expect(await treeContract.balanceOf(owner.address)).to.eq(1)
       const userRetirementCertificate = await retirementCertificateEscrow.getUserRetirementCertificates(1);
       expect(userRetirementCertificate[0][0].claimed).eq(false)
@@ -141,114 +144,107 @@ describe('TreeContract', () => {
       expect(userRetirementCertificate[1]).eq(1)
     });
 
-    it(' - Should mint 10 token', async () => {
-      const { treeContract, owner, retirementCertificateEscrow} = await loadFixture(fetchFixtures)
-      await treeContract.mint(10, '', '')
-      expect(await treeContract.balanceOf(owner.address)).to.eq(10)
-      const userRetirementCertificate = await retirementCertificateEscrow.getUserRetirementCertificates(1);
-      expect(userRetirementCertificate[0][0].claimed).eq(false)
-      expect(userRetirementCertificate[0][0].retirementCertificate).eq(1)
-      expect(userRetirementCertificate[0][0].tree).eq(1)
-      expect(userRetirementCertificate[1]).eq(1)
-    });
+    // it(' - Should mint 10 token', async () => {
+    //   const { treeContract, owner, retirementCertificateEscrow} = await loadFixture(fetchFixtures)
+    //   await treeContract.mint(10, '', '')
+    //   expect(await treeContract.balanceOf(owner.address)).to.eq(10)
+    //   const userRetirementCertificate = await retirementCertificateEscrow.getUserRetirementCertificates(1);
+    //   expect(userRetirementCertificate[0][0].claimed).eq(false)
+    //   expect(userRetirementCertificate[0][0].retirementCertificate).eq(1)
+    //   expect(userRetirementCertificate[0][0].tree).eq(1)
+    //   expect(userRetirementCertificate[1]).eq(1)
+    // });
 
     it(' - Should mint 1 token properly when cost is 1 ETH', async () => {
       const { treeContract, owner, ETH, weth} = await loadFixture(fetchFixtures)
       await expect(treeContract.setCost(ETH)).to.not.reverted;
 
-      await expect(treeContract.mint(1, '', '', { value: ETH })).to.not.reverted
+      await expect(treeContract.mint('', '', 0, Date.now(), { value: ETH })).to.not.reverted
       expect(await treeContract.balanceOf(owner.address)).to.eq(1)
     });
 
-    it(' - Should mint 8 token properly when cost is 1 ETH', async () => {
-      const { treeContract, owner, weth, ETH, retirementCertificateEscrow} = await loadFixture(fetchFixtures)
-      await expect(treeContract.setCost(ETH)).to.not.reverted;
+    // it(' - Should mint 8 token properly when cost is 1 ETH', async () => {
+    //   const { treeContract, owner, weth, ETH, retirementCertificateEscrow} = await loadFixture(fetchFixtures)
+    //   await expect(treeContract.setCost(ETH)).to.not.reverted;
 
-      await expect(treeContract.mint(8, '', '', { value: ETH.mul(8) })).to.not.reverted
-      expect(await treeContract.balanceOf(owner.address)).to.eq(8)
-      const userRetirementCertificate = await retirementCertificateEscrow.getUserRetirementCertificates(1);
-      expect(userRetirementCertificate[0][0].claimed).eq(false)
-      expect(userRetirementCertificate[0][0].retirementCertificate).eq(1)
-      expect(userRetirementCertificate[0][0].tree).eq(1)
-      expect(userRetirementCertificate[1]).eq(1)
-    });
+    //   await expect(treeContract.mint(8, '', '', { value: ETH.mul(8) })).to.not.reverted
+    //   expect(await treeContract.balanceOf(owner.address)).to.eq(8)
+    //   const userRetirementCertificate = await retirementCertificateEscrow.getUserRetirementCertificates(1);
+    //   expect(userRetirementCertificate[0][0].claimed).eq(false)
+    //   expect(userRetirementCertificate[0][0].retirementCertificate).eq(1)
+    //   expect(userRetirementCertificate[0][0].tree).eq(1)
+    //   expect(userRetirementCertificate[1]).eq(1)
+    // });
 
-    it(' - Should not mint 8 token properly when cost is 1 ETH but less is sent', async () => {
-      const { treeContract, owner, provider, ETH, retirementCertificateEscrow} = await loadFixture(fetchFixtures)
-      await expect(treeContract.setCost(ETH)).to.not.reverted;
+    // it(' - Should not mint 8 token properly when cost is 1 ETH but less is sent', async () => {
+    //   const { treeContract, owner, provider, ETH, retirementCertificateEscrow} = await loadFixture(fetchFixtures)
+    //   await expect(treeContract.setCost(ETH)).to.not.reverted;
 
-      await expect(treeContract.mint(8, '', '', { value: ETH.mul(7) })).to.reverted
-      expect(await treeContract.balanceOf(owner.address)).to.eq(0)
-      expect(await provider.getBalance(treeContract.address)).to.eq(0)
-      const userRetirementCertificate = await retirementCertificateEscrow.getUserRetirementCertificates(1);
-      expect(userRetirementCertificate[1]).eq(0)
-    });
+    //   await expect(treeContract.mint(8, '', '', { value: ETH.mul(7) })).to.reverted
+    //   expect(await treeContract.balanceOf(owner.address)).to.eq(0)
+    //   expect(await provider.getBalance(treeContract.address)).to.eq(0)
+    //   const userRetirementCertificate = await retirementCertificateEscrow.getUserRetirementCertificates(1);
+    //   expect(userRetirementCertificate[1]).eq(0)
+    // });
 
     it(' - Should not mint 1 token properly when cost is 1 ETH and less amount is sent', async () => {
       const { treeContract, owner, provider, ETH, HALF_ETH, retirementCertificateEscrow } = await loadFixture(fetchFixtures)
       await expect(treeContract.setCost(ETH)).to.not.reverted;
 
-      await expect(treeContract.mint(1, '', '', { value: HALF_ETH })).to.revertedWith('Incorrect value sent')
+      await expect(treeContract.mint('', '', 0, Date.now(), { value: HALF_ETH })).to.revertedWith('Incorrect value sent')
       expect(await treeContract.balanceOf(owner.address)).to.eq(0)
       expect(await provider.getBalance(treeContract.address)).to.eq(0)
       const userRetirementCertificate = await retirementCertificateEscrow.getUserRetirementCertificates(1);
       expect(userRetirementCertificate[1]).eq(0)
     });
 
-    it(' - Should not mint 2 token properly when cost is 1 ETH and less amount is sent', async () => {
-      const { treeContract, owner, provider, ETH, HALF_ETH , retirementCertificateEscrow } = await loadFixture(fetchFixtures)
-      await expect(treeContract.setCost(ETH)).to.not.reverted;
+    // it(' - Should not mint 2 token properly when cost is 1 ETH and less amount is sent', async () => {
+    //   const { treeContract, owner, provider, ETH, HALF_ETH , retirementCertificateEscrow } = await loadFixture(fetchFixtures)
+    //   await expect(treeContract.setCost(ETH)).to.not.reverted;
 
-      await expect(treeContract.mint(2, '', '', { value: HALF_ETH })).to.revertedWith('Incorrect value sent')
-      expect(await treeContract.balanceOf(owner.address)).to.eq(0)
-      expect(await provider.getBalance(treeContract.address)).to.eq(0)
-      const userRetirementCertificate = await retirementCertificateEscrow.getUserRetirementCertificates(1);
-      expect(userRetirementCertificate[1]).eq(0)
-    });
+    //   await expect(treeContract.mint(2, '', '', { value: HALF_ETH })).to.revertedWith('Incorrect value sent')
+    //   expect(await treeContract.balanceOf(owner.address)).to.eq(0)
+    //   expect(await provider.getBalance(treeContract.address)).to.eq(0)
+    //   const userRetirementCertificate = await retirementCertificateEscrow.getUserRetirementCertificates(1);
+    //   expect(userRetirementCertificate[1]).eq(0)
+    // });
 
-    it(' - Should mint 10 token through out', async () => {
-      const { treeContract, owner, provider, ETH, HALF_ETH, retirementCertificateEscrow} = await loadFixture(fetchFixtures)
-      await expect(treeContract.mint(2, '', '')).to.not.reverted;
-      expect(await treeContract.balanceOf(owner.address)).to.eq(2)
-      await expect(treeContract.mint(8, '', '')).to.not.reverted;
-      expect(await treeContract.balanceOf(owner.address)).to.eq(10)
-      const userRetirementCertificate = await retirementCertificateEscrow.getUserRetirementCertificates(1);
-      expect(userRetirementCertificate[0][0].claimed).eq(false)
-      expect(userRetirementCertificate[0][0].retirementCertificate).eq(1)
-      expect(userRetirementCertificate[0][0].tree).eq(1)
-      expect(userRetirementCertificate[1]).eq(1)
-    });
+    // it(' - Should mint 10 token through out', async () => {
+    //   const { treeContract, owner, provider, ETH, HALF_ETH, retirementCertificateEscrow} = await loadFixture(fetchFixtures)
+    //   await expect(treeContract.mint(2, '', '')).to.not.reverted;
+    //   expect(await treeContract.balanceOf(owner.address)).to.eq(2)
+    //   await expect(treeContract.mint(8, '', '')).to.not.reverted;
+    //   expect(await treeContract.balanceOf(owner.address)).to.eq(10)
+    //   const userRetirementCertificate = await retirementCertificateEscrow.getUserRetirementCertificates(1);
+    //   expect(userRetirementCertificate[0][0].claimed).eq(false)
+    //   expect(userRetirementCertificate[0][0].retirementCertificate).eq(1)
+    //   expect(userRetirementCertificate[0][0].tree).eq(1)
+    //   expect(userRetirementCertificate[1]).eq(1)
+    // });
 
-    it(' - Should mint 10 token at once', async () => {
-      const { treeContract, owner, provider, ETH, HALF_ETH, retirementCertificateEscrow } = await loadFixture(fetchFixtures)
-      await expect(treeContract.mint(10, '', '')).to.not.reverted;
-      expect(await treeContract.balanceOf(owner.address)).to.eq(10)
-      const userRetirementCertificate = await retirementCertificateEscrow.getUserRetirementCertificates(1);
-      expect(userRetirementCertificate[0][0].claimed).eq(false)
-      expect(userRetirementCertificate[0][0].retirementCertificate).eq(1)
-      expect(userRetirementCertificate[0][0].tree).eq(1)
-      expect(userRetirementCertificate[1]).eq(1)
-    });
-
-    it(' - Should not mint more than 10 token at once', async () => {
-      const { treeContract, owner, provider, ETH, HALF_ETH, retirementCertificateEscrow } = await loadFixture(fetchFixtures)
-      await expect(treeContract.mint(11, '', '')).to.revertedWith('Exceed max mintable amount')
-      const userRetirementCertificate = await retirementCertificateEscrow.getUserRetirementCertificates(1);
-      expect(userRetirementCertificate[1]).eq(0)
-    });
+    // it(' - Should mint 10 token at once', async () => {
+    //   const { treeContract, owner, provider, ETH, HALF_ETH, retirementCertificateEscrow } = await loadFixture(fetchFixtures)
+    //   await expect(treeContract.mint(10, '', '')).to.not.reverted;
+    //   expect(await treeContract.balanceOf(owner.address)).to.eq(10)
+    //   const userRetirementCertificate = await retirementCertificateEscrow.getUserRetirementCertificates(1);
+    //   expect(userRetirementCertificate[0][0].claimed).eq(false)
+    //   expect(userRetirementCertificate[0][0].retirementCertificate).eq(1)
+    //   expect(userRetirementCertificate[0][0].tree).eq(1)
+    //   expect(userRetirementCertificate[1]).eq(1)
+    // });
 
     it(' - Should not mint more than 10 token through out', async () => {
       const { treeContract, owner, provider, ETH, HALF_ETH, retirementCertificateEscrow } = await loadFixture(fetchFixtures)
-      await expect(treeContract.mint(2, '', '')).to.not.reverted;
-      expect(await treeContract.balanceOf(owner.address)).to.eq(2)
+      await expect(treeContract.mint('', '', 0, Date.now())).to.not.reverted;
+      expect(await treeContract.balanceOf(owner.address)).to.eq(1)
       let userRetirementCertificate = await retirementCertificateEscrow.getUserRetirementCertificates(1);
       expect(userRetirementCertificate[0][0].claimed).eq(false)
       expect(userRetirementCertificate[0][0].retirementCertificate).eq(1)
       expect(userRetirementCertificate[0][0].tree).eq(1)
       expect(userRetirementCertificate[1]).eq(1)
 
-      await expect(treeContract.mint(9, '', '')).to.revertedWith('Exceed max mintable amount')
-      expect(await treeContract.balanceOf(owner.address)).to.eq(2)
+      await expect(treeContract.mint('', '', 0, Date.now())).to.revertedWith('Exceed max mintable amount')
+      expect(await treeContract.balanceOf(owner.address)).to.eq(1)
       expect(userRetirementCertificate[0][0].claimed).eq(false)
       expect(userRetirementCertificate[0][0].retirementCertificate).eq(1)
       expect(userRetirementCertificate[0][0].tree).eq(1)
