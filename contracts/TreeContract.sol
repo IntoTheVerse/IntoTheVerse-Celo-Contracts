@@ -265,12 +265,10 @@ contract TreeContract is Ownable, ERC721A {
 
     function downgradeTree(
         uint256 _tokenId,
-        uint256 _balance
+        uint256 _balance,
+        uint256 minimumStake
     ) external onlyGreenDonationContract {
         require(_exists(_tokenId), "Tree does not exist");
-
-        uint256 minimumStake = GreenDonation(greenDonationContract)
-            .getMinimumStake();
         uint256 minimumNoOfTimesStaked = _balance < minimumStake
             ? 0
             : _balance / minimumStake;
