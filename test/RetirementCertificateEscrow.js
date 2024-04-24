@@ -98,7 +98,7 @@ describe('RetirementCertificateEscrow contract', () => {
       await greenDonation.setClaimInterval(0);
       await stakingToken.mint(owner.address, ETH.mul(10));
       await stakingToken.approve(greenDonation.address, ETH);
-      await treeContract.mint(1, '', '');
+      await treeContract.mint('', '', 0, Date.now());
       await treeContract.setGreenDonationContract(greenDonation.address);
       await retirementCertificateEscrow.setGreenDonation(greenDonation.address);
       await retirementCertificateEscrow.setTreeContract(treeContract.address);
@@ -108,7 +108,7 @@ describe('RetirementCertificateEscrow contract', () => {
       await provider.send("evm_setNextBlockTimestamp", [timestamp + 2 * DAY]);
       await provider.send("evm_mine");
       expect(await time.latest()).gt(timestamp);
-      await greenDonation.getReward(1, 'B', 'R');
+      await greenDonation.getReward(1, 0, Date.now());
 
       const userRetirementCertificate = await retirementCertificateEscrow.getUserRetirementCertificates(1);
       expect(userRetirementCertificate[0][0].claimed).eq(false)
@@ -143,7 +143,7 @@ describe('RetirementCertificateEscrow contract', () => {
       await greenDonation.setClaimInterval(0);
       await stakingToken.mint(owner.address, ETH.mul(10));
       await stakingToken.approve(greenDonation.address, ETH);
-      await treeContract.mint(1, '', '');
+      await treeContract.mint('', '', 0, Date.now());
       await treeContract.setGreenDonationContract(greenDonation.address);
       await retirementCertificateEscrow.setGreenDonation(greenDonation.address);
       await retirementCertificateEscrow.setTreeContract(treeContract.address);
@@ -153,7 +153,7 @@ describe('RetirementCertificateEscrow contract', () => {
       await provider.send("evm_setNextBlockTimestamp", [timestamp + 2 * DAY]);
       await provider.send("evm_mine");
       expect(await time.latest()).gt(timestamp);
-      await greenDonation.getReward(1, 'B', 'R');
+      await greenDonation.getReward(1, 0, Date.now());
 
       const userRetirementCertificate = await retirementCertificateEscrow.getUserRetirementCertificates(1);
       expect(userRetirementCertificate[0][0].claimed).eq(false)
@@ -188,7 +188,7 @@ describe('RetirementCertificateEscrow contract', () => {
       await greenDonation.setClaimInterval(0);
       await stakingToken.mint(owner.address, ETH.mul(10));
       await stakingToken.approve(greenDonation.address, ETH);
-      await treeContract.mint(1, '', '');
+      await treeContract.mint('', '', 0, Date.now());
       await treeContract.setGreenDonationContract(greenDonation.address);
       await retirementCertificateEscrow.setGreenDonation(greenDonation.address);
       await retirementCertificateEscrow.setTreeContract(treeContract.address);
@@ -198,7 +198,7 @@ describe('RetirementCertificateEscrow contract', () => {
       await provider.send("evm_setNextBlockTimestamp", [timestamp + 2 * DAY]);
       await provider.send("evm_mine");
       expect(await time.latest()).gt(timestamp);
-      await greenDonation.getReward(1, 'B', 'R');
+      await greenDonation.getReward(1, 0, Date.now());
 
       const userRetirementCertificate = await retirementCertificateEscrow.getUserRetirementCertificates(1);
       expect(userRetirementCertificate[0][0].claimed).eq(false)
@@ -233,7 +233,7 @@ describe('RetirementCertificateEscrow contract', () => {
       await greenDonation.setClaimInterval(0);
       await stakingToken.mint(owner.address, ETH.mul(10));
       await stakingToken.approve(greenDonation.address, ETH);
-      await treeContract.mint(1, '', '');
+      await treeContract.mint('', '', 0, Date.now());
       await treeContract.setGreenDonationContract(greenDonation.address);
       await retirementCertificateEscrow.setGreenDonation(greenDonation.address);
       await retirementCertificateEscrow.setTreeContract(treeContract.address);
@@ -243,7 +243,7 @@ describe('RetirementCertificateEscrow contract', () => {
       await provider.send("evm_setNextBlockTimestamp", [timestamp + 2 * DAY]);
       await provider.send("evm_mine");
       expect(await time.latest()).gt(timestamp);
-      await greenDonation.getReward(1, 'B', 'R');
+      await greenDonation.getReward(1, 0, Date.now());
 
       const userRetirementCertificate = await retirementCertificateEscrow.getUserRetirementCertificates(1);
       expect(userRetirementCertificate[0][0].claimed).eq(false)
@@ -278,7 +278,7 @@ describe('RetirementCertificateEscrow contract', () => {
       await greenDonation.setClaimInterval(0);
       await stakingToken.mint(owner.address, ETH.mul(10));
       await stakingToken.approve(greenDonation.address, ETH);
-      await treeContract.mint(1, '', '');
+      await treeContract.mint('', '', 0, Date.now());
       await treeContract.setGreenDonationContract(greenDonation.address);
       await retirementCertificateEscrow.setGreenDonation(greenDonation.address);
       await retirementCertificateEscrow.setTreeContract(treeContract.address);
@@ -288,7 +288,7 @@ describe('RetirementCertificateEscrow contract', () => {
       await provider.send("evm_setNextBlockTimestamp", [timestamp + 2 * DAY]);
       await provider.send("evm_mine");
       expect(await time.latest()).gt(timestamp);
-      await greenDonation.getReward(1, 'B', 'R');
+      await greenDonation.getReward(1, 0, Date.now());
 
       const userRetirementCertificate = await retirementCertificateEscrow.getUserRetirementCertificates(1);
       expect(userRetirementCertificate[0][0].claimed).eq(false)
@@ -322,7 +322,7 @@ describe('RetirementCertificateEscrow contract', () => {
       await greenDonation.setClaimInterval(0);
       await stakingToken.mint(owner.address, ETH.mul(10));
       await stakingToken.approve(greenDonation.address, ETH);
-      await treeContract.mint(1, '', '');
+      await treeContract.mint('', '', 0, Date.now());
       await treeContract.setGreenDonationContract(greenDonation.address);
       await retirementCertificateEscrow.setGreenDonation(greenDonation.address);
       await retirementCertificateEscrow.setTreeContract(treeContract.address);
@@ -332,7 +332,7 @@ describe('RetirementCertificateEscrow contract', () => {
       await provider.send("evm_setNextBlockTimestamp", [timestamp + 2 * DAY]);
       await provider.send("evm_mine");
       expect(await time.latest()).gt(timestamp);
-      await greenDonation.getReward(1, 'B', 'R');
+      await greenDonation.getReward(1, 0, Date.now());
 
       const userRetirementCertificate = await retirementCertificateEscrow.getUserRetirementCertificates(1);
       expect(userRetirementCertificate[0][0].claimed).eq(false)
@@ -368,177 +368,6 @@ describe('RetirementCertificateEscrow contract', () => {
       expect(await retirementCertificate.ownerOf(2)).eq(greenDonation.address);
     });
 
-    it(' - Should not affect other claim retirement certificate when 2 trees', async () => {
-      const { greenDonation, provider, DAY, treeContract, owner, ETH, rewardToken, stakingToken, retirementCertificateEscrow, retirementCertificate } = await loadFixture(fetchFixtures)
-      
-      await rewardToken.mint(greenDonation.address, ETH.mul(1000));
-      await greenDonation.notifyRewardAmount(ETH.mul(1000));
-      await greenDonation.setClaimInterval(0);
-      await stakingToken.mint(owner.address, ETH.mul(10));
-      await stakingToken.approve(greenDonation.address, ETH.mul(10));
-      await treeContract.mint(1, '', '');
-      await treeContract.mint(1, '', '');
-      await treeContract.setGreenDonationContract(greenDonation.address);
-      await retirementCertificateEscrow.setGreenDonation(greenDonation.address);
-      await retirementCertificateEscrow.setTreeContract(treeContract.address);
-      await retirementCertificateEscrow.setRetirementCertificate(retirementCertificate.address);
-      await expect(greenDonation.stake(1, ETH)).to.not.reverted;
-      await expect(greenDonation.stake(2, ETH)).to.not.reverted;
-      const timestamp = await time.latest()
-      await provider.send("evm_setNextBlockTimestamp", [timestamp + 2 * DAY]);
-      await provider.send("evm_mine");
-      expect(await time.latest()).gt(timestamp);
-      await greenDonation.getReward(1, 'B', 'R');
-      await greenDonation.getReward(2, 'B', 'R');
-
-      let userRetirementCertificate = await retirementCertificateEscrow.getUserRetirementCertificates(1);
-      expect(userRetirementCertificate[0][0].claimed).eq(false)
-      expect(userRetirementCertificate[0][0].retirementCertificate).eq(1)
-      expect(userRetirementCertificate[0][1].claimed).eq(false)
-      expect(userRetirementCertificate[0][1].retirementCertificate).eq(3)
-      expect(userRetirementCertificate[1]).eq(2)
-      expect(userRetirementCertificate[0][0].tree).eq(1)
-      expect(userRetirementCertificate[0][1].tree).eq(1)
-      expect(await retirementCertificate.ownerOf(1)).eq(treeContract.address);
-      expect(await retirementCertificate.ownerOf(3)).eq(greenDonation.address);
-      let userRetirementCertificate2 = await retirementCertificateEscrow.getUserRetirementCertificates(2);
-      expect(userRetirementCertificate2[0][0].claimed).eq(false)
-      expect(userRetirementCertificate2[0][0].retirementCertificate).eq(2)
-      expect(userRetirementCertificate2[1]).eq(2)
-      expect(userRetirementCertificate2[0][1].claimed).eq(false)
-      expect(userRetirementCertificate2[0][1].retirementCertificate).eq(4)
-      expect(userRetirementCertificate2[1]).eq(2)
-      expect(userRetirementCertificate2[0][0].tree).eq(2)
-      expect(userRetirementCertificate2[0][1].tree).eq(2)
-      expect(await retirementCertificate.ownerOf(2)).eq(treeContract.address);
-      expect(await retirementCertificate.ownerOf(4)).eq(greenDonation.address);
-      await expect(retirementCertificateEscrow.claimRetirementCertificate(1, [0])).to.not.reverted;
-      
-      userRetirementCertificate = await retirementCertificateEscrow.getUserRetirementCertificates(1);
-      expect(userRetirementCertificate[0][0].claimed).eq(true)
-      expect(userRetirementCertificate[0][0].retirementCertificate).eq(1)
-      expect(userRetirementCertificate[0][1].claimed).eq(false)
-      expect(userRetirementCertificate[0][1].retirementCertificate).eq(3)
-      expect(userRetirementCertificate[1]).eq(2)
-      expect(userRetirementCertificate[0][0].tree).eq(1);
-      expect(userRetirementCertificate[0][1].tree).eq(1);
-      expect(await retirementCertificate.ownerOf(1)).eq(owner.address);
-      expect(await retirementCertificate.ownerOf(3)).eq(greenDonation.address);
-      
-      userRetirementCertificate2 = await retirementCertificateEscrow.getUserRetirementCertificates(2);
-      expect(userRetirementCertificate2[0][0].claimed).eq(false)
-      expect(userRetirementCertificate2[0][0].retirementCertificate).eq(2)
-      expect(userRetirementCertificate2[1]).eq(2)
-      expect(userRetirementCertificate2[0][0].tree).eq(2)
-      expect(userRetirementCertificate2[0][1].claimed).eq(false)
-      expect(userRetirementCertificate2[0][1].retirementCertificate).eq(4)
-      expect(userRetirementCertificate2[1]).eq(2)
-      expect(userRetirementCertificate2[0][0].tree).eq(2)
-      expect(await retirementCertificate.ownerOf(2)).eq(treeContract.address);
-      expect(await retirementCertificate.ownerOf(4)).eq(greenDonation.address);
-      
-      await expect(retirementCertificateEscrow.claimRetirementCertificate(2, [0])).to.not.reverted;
-      userRetirementCertificate = await retirementCertificateEscrow.getUserRetirementCertificates(1);
-      expect(userRetirementCertificate[0][0].claimed).eq(true)
-      expect(userRetirementCertificate[0][0].retirementCertificate).eq(1)
-      expect(userRetirementCertificate[1]).eq(2)
-      expect(userRetirementCertificate[0][0].tree).eq(1);
-      expect(userRetirementCertificate[0][1].claimed).eq(false)
-      expect(userRetirementCertificate[0][1].retirementCertificate).eq(3)
-      expect(userRetirementCertificate[1]).eq(2)
-      expect(userRetirementCertificate[0][1].tree).eq(1);
-      expect(await retirementCertificate.ownerOf(1)).eq(owner.address);
-      expect(await retirementCertificate.ownerOf(3)).eq(greenDonation.address);
-      userRetirementCertificate2 = await retirementCertificateEscrow.getUserRetirementCertificates(2);
-      expect(userRetirementCertificate2[0][0].claimed).eq(true)
-      expect(userRetirementCertificate2[0][0].retirementCertificate).eq(2)
-      expect(userRetirementCertificate2[1]).eq(2)
-      expect(userRetirementCertificate2[0][0].tree).eq(2)
-      expect(await retirementCertificate.ownerOf(2)).eq(owner.address);
-      expect(userRetirementCertificate2[0][1].claimed).eq(false)
-      expect(userRetirementCertificate2[0][1].retirementCertificate).eq(4)
-      expect(userRetirementCertificate2[1]).eq(2)
-      expect(userRetirementCertificate2[0][1].tree).eq(2)
-      expect(await retirementCertificate.ownerOf(4)).eq(greenDonation.address);
-    });
-
-    it(' - Should not affect other claim retirement certificate', async () => {
-      const { greenDonation, provider, DAY, treeContract, owner, ETH, rewardToken, stakingToken, retirementCertificateEscrow, retirementCertificate } = await loadFixture(fetchFixtures)
-      
-      await rewardToken.mint(greenDonation.address, ETH.mul(1000));
-      await greenDonation.notifyRewardAmount(ETH.mul(1000));
-      await greenDonation.setClaimInterval(0);
-      await stakingToken.mint(owner.address, ETH.mul(10));
-      await stakingToken.approve(greenDonation.address, ETH.mul(10));
-      await treeContract.mint(2, '', '');
-      await treeContract.setGreenDonationContract(greenDonation.address);
-      await retirementCertificateEscrow.setGreenDonation(greenDonation.address);
-      await retirementCertificateEscrow.setTreeContract(treeContract.address);
-      await retirementCertificateEscrow.setRetirementCertificate(retirementCertificate.address);
-      await expect(greenDonation.stake(1, ETH)).to.not.reverted;
-      await expect(greenDonation.stake(2, ETH)).to.not.reverted;
-      const timestamp = await time.latest()
-      await provider.send("evm_setNextBlockTimestamp", [timestamp + 2 * DAY]);
-      await provider.send("evm_mine");
-      expect(await time.latest()).gt(timestamp);
-      await greenDonation.getReward(1, 'B', 'R');
-      await greenDonation.getReward(2, 'B', 'R');
-
-      let userRetirementCertificate = await retirementCertificateEscrow.getUserRetirementCertificates(1);
-      expect(userRetirementCertificate[0][0].claimed).eq(false)
-      expect(userRetirementCertificate[0][0].retirementCertificate).eq(1)
-      expect(userRetirementCertificate[0][1].claimed).eq(false)
-      expect(userRetirementCertificate[0][1].retirementCertificate).eq(2)
-      expect(userRetirementCertificate[1]).eq(2)
-      expect(userRetirementCertificate[0][0].tree).eq(1)
-      expect(userRetirementCertificate[0][1].tree).eq(1)
-      expect(await retirementCertificate.ownerOf(1)).eq(treeContract.address);
-      expect(await retirementCertificate.ownerOf(2)).eq(greenDonation.address);
-      let userRetirementCertificate2 = await retirementCertificateEscrow.getUserRetirementCertificates(2);
-      expect(userRetirementCertificate2[0][0].claimed).eq(false)
-      expect(userRetirementCertificate2[0][0].retirementCertificate).eq(3)
-      expect(userRetirementCertificate2[1]).eq(1)
-      expect(userRetirementCertificate2[0][0].tree).eq(2)
-      expect(await retirementCertificate.ownerOf(3)).eq(greenDonation.address);
-
-      await expect(retirementCertificateEscrow.claimRetirementCertificate(1, [0])).to.not.reverted;
-      userRetirementCertificate = await retirementCertificateEscrow.getUserRetirementCertificates(1);
-      expect(userRetirementCertificate[0][0].claimed).eq(true)
-      expect(userRetirementCertificate[0][0].retirementCertificate).eq(1)
-      expect(userRetirementCertificate[0][1].claimed).eq(false)
-      expect(userRetirementCertificate[0][1].retirementCertificate).eq(2)
-      expect(userRetirementCertificate[1]).eq(2)
-      expect(userRetirementCertificate[0][0].tree).eq(1);
-      expect(userRetirementCertificate[0][1].tree).eq(1);
-      expect(await retirementCertificate.ownerOf(1)).eq(owner.address);
-      expect(await retirementCertificate.ownerOf(2)).eq(greenDonation.address);
-      userRetirementCertificate2 = await retirementCertificateEscrow.getUserRetirementCertificates(2);
-      expect(userRetirementCertificate2[0][0].claimed).eq(false)
-      expect(userRetirementCertificate2[0][0].retirementCertificate).eq(3)
-      expect(userRetirementCertificate2[1]).eq(1)
-      expect(userRetirementCertificate2[0][0].tree).eq(2)
-      expect(await retirementCertificate.ownerOf(3)).eq(greenDonation.address);
-
-      await expect(retirementCertificateEscrow.claimRetirementCertificate(2, [0])).to.not.reverted;
-      userRetirementCertificate = await retirementCertificateEscrow.getUserRetirementCertificates(1);
-      expect(userRetirementCertificate[0][0].claimed).eq(true)
-      expect(userRetirementCertificate[0][0].retirementCertificate).eq(1)
-      expect(userRetirementCertificate[1]).eq(2)
-      expect(userRetirementCertificate[0][0].tree).eq(1);
-      expect(userRetirementCertificate[0][1].claimed).eq(false)
-      expect(userRetirementCertificate[0][1].retirementCertificate).eq(2)
-      expect(userRetirementCertificate[1]).eq(2)
-      expect(userRetirementCertificate[0][1].tree).eq(1);
-      expect(await retirementCertificate.ownerOf(1)).eq(owner.address);
-      expect(await retirementCertificate.ownerOf(2)).eq(greenDonation.address);
-      userRetirementCertificate2 = await retirementCertificateEscrow.getUserRetirementCertificates(2);
-      expect(userRetirementCertificate2[0][0].claimed).eq(true)
-      expect(userRetirementCertificate2[0][0].retirementCertificate).eq(3)
-      expect(userRetirementCertificate2[1]).eq(1)
-      expect(userRetirementCertificate2[0][0].tree).eq(2)
-      expect(await retirementCertificate.ownerOf(3)).eq(owner.address);
-    });
-
     it(' - Should claim both retirement certificate', async () => {
       const { greenDonation, provider, DAY, treeContract, owner, ETH, rewardToken, stakingToken, retirementCertificateEscrow, retirementCertificate } = await loadFixture(fetchFixtures)
       
@@ -547,7 +376,7 @@ describe('RetirementCertificateEscrow contract', () => {
       await greenDonation.setClaimInterval(0);
       await stakingToken.mint(owner.address, ETH.mul(10));
       await stakingToken.approve(greenDonation.address, ETH);
-      await treeContract.mint(1, '', '');
+      await treeContract.mint('', '', 0, Date.now());
       await treeContract.setGreenDonationContract(greenDonation.address);
       await retirementCertificateEscrow.setGreenDonation(greenDonation.address);
       await retirementCertificateEscrow.setTreeContract(treeContract.address);
@@ -557,12 +386,12 @@ describe('RetirementCertificateEscrow contract', () => {
       await provider.send("evm_setNextBlockTimestamp", [timestamp + 2 * DAY]);
       await provider.send("evm_mine");
       expect(await time.latest()).gt(timestamp);
-      await greenDonation.getReward(1, 'B', 'R');
+      await greenDonation.getReward(1, 0, Date.now());
       timestamp = await time.latest()
       await provider.send("evm_setNextBlockTimestamp", [timestamp + 2 * DAY]);
       await provider.send("evm_mine");
       expect(await time.latest()).gt(timestamp);
-      await greenDonation.getReward(1, 'B', 'R');
+      await greenDonation.getReward(1, 0, Date.now());
 
       const userRetirementCertificate = await retirementCertificateEscrow.getUserRetirementCertificates(1);
       expect(userRetirementCertificate[0][0].claimed).eq(false)
@@ -604,7 +433,7 @@ describe('RetirementCertificateEscrow contract', () => {
       await greenDonation.setClaimInterval(0);
       await stakingToken.mint(owner.address, ETH.mul(10));
       await stakingToken.approve(greenDonation.address, ETH);
-      await treeContract.mint(1, '', '');
+      await treeContract.mint('', '', 0, Date.now());
       await treeContract.setGreenDonationContract(greenDonation.address);
       await retirementCertificateEscrow.setGreenDonation(greenDonation.address);
       await retirementCertificateEscrow.setTreeContract(treeContract.address);
@@ -614,12 +443,12 @@ describe('RetirementCertificateEscrow contract', () => {
       await provider.send("evm_setNextBlockTimestamp", [timestamp + 2 * DAY]);
       await provider.send("evm_mine");
       expect(await time.latest()).gt(timestamp);
-      await greenDonation.getReward(1, 'B', 'R');
+      await greenDonation.getReward(1, 0, Date.now());
       timestamp = await time.latest()
       await provider.send("evm_setNextBlockTimestamp", [timestamp + 2 * DAY]);
       await provider.send("evm_mine");
       expect(await time.latest()).gt(timestamp);
-      await greenDonation.getReward(1, 'B', 'R');
+      await greenDonation.getReward(1, 0, Date.now());
 
       const userRetirementCertificate = await retirementCertificateEscrow.getUserRetirementCertificates(1);
       expect(userRetirementCertificate[0][0].claimed).eq(false)

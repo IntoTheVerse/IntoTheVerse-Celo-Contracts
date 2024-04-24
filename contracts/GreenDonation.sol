@@ -36,7 +36,7 @@ contract GreenDonation is
     uint256 public rewardPerTokenStored;
 
     uint256 public redemptionRate = 10;
-    
+
     mapping(uint256 => uint256) public userRewardPerTokenPaid;
     mapping(uint256 => uint256) public rewards;
 
@@ -103,7 +103,9 @@ contract GreenDonation is
         return minimumStake;
     }
 
-    function getNoOfTimesStakeForTree(uint256 tree) public view returns (uint256) {
+    function getNoOfTimesStakeForTree(
+        uint256 tree
+    ) public view returns (uint256) {
         return noOfTimesStakedForTree[tree];
     }
 
@@ -163,9 +165,7 @@ contract GreenDonation is
         stakeInterval = interval;
     }
 
-    function setRedemptionRate(
-        uint256 rate
-    ) external nonReentrant onlyOwner {
+    function setRedemptionRate(uint256 rate) external nonReentrant onlyOwner {
         emit SetRedemptionRate(redemptionRate, rate);
         redemptionRate = rate;
     }
@@ -195,11 +195,17 @@ contract GreenDonation is
     function stake(
         uint256 tree,
         uint256 amount
-    ) external nonReentrant updateReward(tree) onlyTreeOwner(tree, msg.sender) checkStakingInternval(tree) {
+    )
+        external
+        nonReentrant
+        updateReward(tree)
+        onlyTreeOwner(tree, msg.sender)
+        checkStakingInternval(tree)
+    {
         require(amount > 0, "Cannot stake 0");
-        require(amount > minimumStake, "Minimum stake not met");
+        require(amount >= minimumStake, "Minimum stake not met");
         lastStakeTimestamp[tree] = block.timestamp;
-        noOfTimesStakedForTree[tree] = noOfTimesStakedForTree[tree]++;
+        noOfTimesStakedForTree[tree]++;
         _totalSupply = _totalSupply.add(amount);
         _balances[tree] = _balances[tree].add(amount);
         stakingToken.safeTransferFrom(msg.sender, address(this), amount);
@@ -217,7 +223,7 @@ contract GreenDonation is
         stakingToken.safeTransfer(msg.sender, amount);
         noOfTimesStakedForTree[tree] = noOfTimesStakedForTree[tree]--; // Subtract no. of stakes since this is a reward.
         emit Withdrawn(tree, msg.sender, amount);
-        treeContract.downgradeTree(tree, _balances[tree]);
+        treeContract.downgradeTree(tree, _balances[tree], getMinimumStake());
     }
 
     function _swapRewardTokenForTC02(
@@ -275,7 +281,11 @@ contract GreenDonation is
                     "Into The Vesre Green Donation Beneficiary",
                     "Into the Verse Green Donation Retirement",
                     _retireTC02Tokens(
-                        _swapRewardTokenForTC02(rewardsToSwapForTC02, minOut, deadline)
+                        _swapRewardTokenForTC02(
+                            rewardsToSwapForTC02,
+                            minOut,
+                            deadline
+                        )
                     )
                 );
             ERC721Upgradeable(address(retirementCertificate)).approve(
@@ -289,11 +299,7 @@ contract GreenDonation is
         }
     }
 
-    function exit(
-        uint256 tree,
-        uint256 minOut,
-        uint256 deadline
-    ) external {
+    function exit(uint256 tree, uint256 minOut, uint256 deadline) external {
         withdraw(tree, _balances[tree]);
         getReward(tree, minOut, deadline);
     }

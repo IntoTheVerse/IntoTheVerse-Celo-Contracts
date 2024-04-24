@@ -39,8 +39,12 @@ contract NftMarketplace is ReentrancyGuard, Ownable {
     event SetRedemptionRate(uint256 oldRate, uint256 rate);
     event SetRetirementCertificateEscrow(address oldEscrow, address newEscrow);
     event SetSwapRouter(address swapRouter, address newSwapRouter);
-    event SetNftWhitelistValue(address nftAddress, bool oldValue, bool newValue);
-    
+    event SetNftWhitelistValue(
+        address nftAddress,
+        bool oldValue,
+        bool newValue
+    );
+
     constructor(
         address _swapRouter,
         address _tc02,
@@ -81,7 +85,7 @@ contract NftMarketplace is ReentrancyGuard, Ownable {
     );
 
     mapping(address => uint256) private s_proceeds;
-    mapping (address => bool) public whitelistedNfts;
+    mapping(address => bool) public whitelistedNfts;
     mapping(address => mapping(uint256 => Listing)) private s_listings;
 
     modifier isWhitelistedNft(address nftAddress) {
@@ -133,7 +137,9 @@ contract NftMarketplace is ReentrancyGuard, Ownable {
         swapRouter = IUniswapV2Router02(router);
     }
 
-    function toggleNftWhitelistValue(address nftAddress) external nonReentrant onlyOwner {
+    function toggleNftWhitelistValue(
+        address nftAddress
+    ) external nonReentrant onlyOwner {
         bool value = whitelistedNfts[nftAddress];
         emit SetNftWhitelistValue(nftAddress, value, !value);
         whitelistedNfts[nftAddress] = !value;
@@ -142,7 +148,10 @@ contract NftMarketplace is ReentrancyGuard, Ownable {
     function setRetirementCertificateEscrow(
         address _retirementCertificateEscrow
     ) external nonReentrant onlyOwner {
-        emit SetRetirementCertificateEscrow(address(retirementCertificateEscrow), _retirementCertificateEscrow);
+        emit SetRetirementCertificateEscrow(
+            address(retirementCertificateEscrow),
+            _retirementCertificateEscrow
+        );
         retirementCertificateEscrow = MarketplaceRetirementCertificateEscrow(
             _retirementCertificateEscrow
         );
@@ -222,7 +231,13 @@ contract NftMarketplace is ReentrancyGuard, Ownable {
         uint256 tokenId,
         string calldata beneficiaryString,
         string calldata retirementMessage
-    ) external payable isListed(nftAddress, tokenId) isWhitelistedNft(nftAddress) nonReentrant {
+    )
+        external
+        payable
+        isListed(nftAddress, tokenId)
+        isWhitelistedNft(nftAddress)
+        nonReentrant
+    {
         Listing memory listedItem = s_listings[nftAddress][tokenId];
         if (msg.value != listedItem.price) {
             revert PriceNotMet(nftAddress, tokenId, listedItem.price);

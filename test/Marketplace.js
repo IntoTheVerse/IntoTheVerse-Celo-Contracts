@@ -88,11 +88,22 @@ describe('Marketplace contract', () => {
       const { marketplace, ETH, nftA, owner } = await loadFixture(fetchFixtures)
       await nftA.mint(owner.address)
       await nftA.approve(marketplace.address, tokenId)
-      
+      await marketplace.connect(owner).toggleNftWhitelistValue(nftA.address)
       await expect(marketplace.listItem(nftA.address, tokenId, ETH)).to.not.reverted;
       const listing = await marketplace.getListing(nftA.address, tokenId);
       expect(listing.seller).to.eq(owner.address)
       expect(listing.price).to.eq(ETH)
+    });
+
+    it(' - Should not listItem if not whitelisted', async () => {
+      const tokenId = 1
+      const { marketplace, ETH, nftA, owner } = await loadFixture(fetchFixtures)
+      await nftA.mint(owner.address)
+      await nftA.approve(marketplace.address, tokenId)
+      await expect(marketplace.listItem(nftA.address, tokenId, ETH)).to.reverted;
+      const listing = await marketplace.getListing(nftA.address, tokenId);
+      expect(listing.seller).to.eq(ZERO_ADDRESS)
+      expect(listing.price).to.eq(0)
     });
 
     it(' - Should not listItem if already listed', async () => {
@@ -100,7 +111,7 @@ describe('Marketplace contract', () => {
       const { marketplace, ETH, nftA, owner } = await loadFixture(fetchFixtures)
       await nftA.mint(owner.address)
       await nftA.approve(marketplace.address, tokenId)
-      
+      await marketplace.connect(owner).toggleNftWhitelistValue(nftA.address)
       await expect(marketplace.listItem(nftA.address, tokenId, ETH)).to.not.reverted;
       const listing = await marketplace.getListing(nftA.address, tokenId);
       expect(listing.seller).to.eq(owner.address)
@@ -113,7 +124,7 @@ describe('Marketplace contract', () => {
       const { marketplace, whale, ETH, nftA, owner } = await loadFixture(fetchFixtures)
       await nftA.mint(owner.address)
       await nftA.approve(marketplace.address, tokenId)
-      
+      await marketplace.connect(owner).toggleNftWhitelistValue(nftA.address)
       await expect(marketplace.connect(whale).listItem(nftA.address, tokenId, ETH)).to.reverted;
       const listing = await marketplace.getListing(nftA.address, tokenId);
       expect(listing.seller).to.eq(ZERO_ADDRESS)
@@ -125,7 +136,7 @@ describe('Marketplace contract', () => {
       const { marketplace, ETH, nftA, owner } = await loadFixture(fetchFixtures)
       await nftA.mint(owner.address)
       await nftA.approve(marketplace.address, tokenId)
-      
+      await marketplace.connect(owner).toggleNftWhitelistValue(nftA.address)
       await expect(marketplace.listItem(nftA.address, tokenId, 0)).to.reverted;
       let listing = await marketplace.getListing(nftA.address, tokenId);
       expect(listing.seller).to.eq(ZERO_ADDRESS)
@@ -136,7 +147,7 @@ describe('Marketplace contract', () => {
       const tokenId = 1
       const { marketplace, ETH, nftA, owner } = await loadFixture(fetchFixtures)
       await nftA.mint(owner.address)
-      
+      await marketplace.connect(owner).toggleNftWhitelistValue(nftA.address)
       await expect(marketplace.listItem(nftA.address, tokenId, 0)).to.reverted;
       let listing = await marketplace.getListing(nftA.address, tokenId);
       expect(listing.seller).to.eq(ZERO_ADDRESS)
@@ -150,7 +161,7 @@ describe('Marketplace contract', () => {
       const { marketplace, ETH, nftA, owner } = await loadFixture(fetchFixtures)
       await nftA.mint(owner.address)
       await nftA.approve(marketplace.address, tokenId)
-      
+      await marketplace.connect(owner).toggleNftWhitelistValue(nftA.address)
       await expect(marketplace.listItem(nftA.address, tokenId, ETH)).to.not.reverted;
       let listing = await marketplace.getListing(nftA.address, tokenId);
       expect(listing.seller).to.eq(owner.address)
@@ -167,7 +178,7 @@ describe('Marketplace contract', () => {
       const { marketplace, ETH, whale, nftA, owner } = await loadFixture(fetchFixtures)
       await nftA.mint(owner.address)
       await nftA.approve(marketplace.address, tokenId)
-      
+      await marketplace.connect(owner).toggleNftWhitelistValue(nftA.address)
       await expect(marketplace.listItem(nftA.address, tokenId, ETH)).to.not.reverted;
       let listing = await marketplace.getListing(nftA.address, tokenId);
       expect(listing.seller).to.eq(owner.address)
@@ -184,7 +195,7 @@ describe('Marketplace contract', () => {
       const { marketplace, ETH, whale, nftA, owner } = await loadFixture(fetchFixtures)
       await nftA.mint(owner.address)
       await nftA.approve(marketplace.address, tokenId)
-      
+      await marketplace.connect(owner).toggleNftWhitelistValue(nftA.address)
       await expect(marketplace.cancelListing(nftA.address, tokenId)).to.reverted;
       const listing = await marketplace.getListing(nftA.address, tokenId);
       expect(listing.seller).to.eq(ZERO_ADDRESS)
@@ -198,7 +209,7 @@ describe('Marketplace contract', () => {
       const { marketplace, ETH, nftA, owner } = await loadFixture(fetchFixtures)
       await nftA.mint(owner.address)
       await nftA.approve(marketplace.address, tokenId)
-      
+      await marketplace.connect(owner).toggleNftWhitelistValue(nftA.address)
       await expect(marketplace.listItem(nftA.address, tokenId, ETH)).to.not.reverted;
       let listing = await marketplace.getListing(nftA.address, tokenId);
       expect(listing.seller).to.eq(owner.address)
@@ -215,7 +226,7 @@ describe('Marketplace contract', () => {
       const { marketplace, ETH, whale, nftA, owner } = await loadFixture(fetchFixtures)
       await nftA.mint(owner.address)
       await nftA.approve(marketplace.address, tokenId)
-      
+      await marketplace.connect(owner).toggleNftWhitelistValue(nftA.address)
       await expect(marketplace.listItem(nftA.address, tokenId, ETH)).to.not.reverted;
       let listing = await marketplace.getListing(nftA.address, tokenId);
       expect(listing.seller).to.eq(owner.address)
@@ -232,7 +243,7 @@ describe('Marketplace contract', () => {
       const { marketplace, ETH, whale, nftA, owner } = await loadFixture(fetchFixtures)
       await nftA.mint(owner.address)
       await nftA.approve(marketplace.address, tokenId)
-      
+      await marketplace.connect(owner).toggleNftWhitelistValue(nftA.address)
       await expect(marketplace.updateListing(nftA.address, tokenId, ETH.mul(2))).to.reverted;
       const listing = await marketplace.getListing(nftA.address, tokenId);
       expect(listing.seller).to.eq(ZERO_ADDRESS)
@@ -244,7 +255,7 @@ describe('Marketplace contract', () => {
       const { marketplace, ETH, whale, nftA, owner } = await loadFixture(fetchFixtures)
       await nftA.mint(owner.address)
       await nftA.approve(marketplace.address, tokenId)
-        
+      await marketplace.connect(owner).toggleNftWhitelistValue(nftA.address)
       await expect(marketplace.listItem(nftA.address, tokenId, ETH)).to.not.reverted;
       let listing = await marketplace.getListing(nftA.address, tokenId);
       expect(listing.seller).to.eq(owner.address)
@@ -263,7 +274,7 @@ describe('Marketplace contract', () => {
       const { marketplace, ETH, whale, nftA, owner, provider, retirementCertificate } = await loadFixture(fetchFixtures)
       await nftA.mint(owner.address)
       await nftA.approve(marketplace.address, tokenId)
-      
+      await marketplace.connect(owner).toggleNftWhitelistValue(nftA.address)
       await expect(marketplace.listItem(nftA.address, tokenId, ETH)).to.not.reverted;
       let listing = await marketplace.getListing(nftA.address, tokenId);
       expect(listing.seller).to.eq(owner.address)
@@ -287,7 +298,7 @@ describe('Marketplace contract', () => {
       const { marketplace, ETH, whale, nftA, owner, retirementCertificate, retirementCertificateEscrow } = await loadFixture(fetchFixtures)
       await nftA.mint(owner.address)
       await nftA.approve(marketplace.address, tokenId)
-      
+      await marketplace.connect(owner).toggleNftWhitelistValue(nftA.address)
       await expect(marketplace.listItem(nftA.address, tokenId, ETH)).to.not.reverted;
       let listing = await marketplace.getListing(nftA.address, tokenId);
       expect(listing.seller).to.eq(owner.address)
@@ -322,7 +333,7 @@ describe('Marketplace contract', () => {
       const { marketplace, ETH, whale, nftA, owner, provider, retirementCertificate } = await loadFixture(fetchFixtures)
       await nftA.mint(owner.address)
       await nftA.approve(marketplace.address, tokenId)
-        
+      await marketplace.connect(owner).toggleNftWhitelistValue(nftA.address)
       let listing = await marketplace.getListing(nftA.address, tokenId);
       expect(listing.seller).to.eq(ZERO_ADDRESS)
       expect(listing.price).to.eq(0)
@@ -346,7 +357,7 @@ describe('Marketplace contract', () => {
       const { marketplace, ETH, whale, nftA, owner, provider, retirementCertificate, retirementCertificateEscrow } = await loadFixture(fetchFixtures)
       await nftA.mint(owner.address)
       await nftA.approve(marketplace.address, tokenId)
-        
+      await marketplace.connect(owner).toggleNftWhitelistValue(nftA.address)
       await expect(marketplace.listItem(nftA.address, tokenId, ETH)).to.not.reverted;
       let listing = await marketplace.getListing(nftA.address, tokenId);
       expect(listing.seller).to.eq(owner.address)
@@ -375,7 +386,7 @@ describe('Marketplace contract', () => {
       const { marketplace, ETH, whale, nftA, owner, provider, retirementCertificate, retirementCertificateEscrow } = await loadFixture(fetchFixtures)
       await nftA.mint(owner.address)
       await nftA.approve(marketplace.address, tokenId)
-        
+      await marketplace.connect(owner).toggleNftWhitelistValue(nftA.address)
       await expect(marketplace.listItem(nftA.address, tokenId, ETH)).to.not.reverted;
       let listing = await marketplace.getListing(nftA.address, tokenId);
       expect(listing.seller).to.eq(owner.address)

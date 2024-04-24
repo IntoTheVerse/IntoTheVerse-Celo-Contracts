@@ -74,7 +74,8 @@ describe('MarketplaceRetirementCertificateEscrow contract', () => {
     
       await nftA.mint(owner.address)
       await nftA.approve(marketplace.address, tokenId)
-      
+      await marketplace.connect(owner).toggleNftWhitelistValue(nftA.address)
+
       await expect(marketplace.listItem(nftA.address, tokenId, ETH)).to.not.reverted;
       let listing = await marketplace.getListing(nftA.address, tokenId);
       expect(listing.seller).to.eq(owner.address)
@@ -121,7 +122,8 @@ describe('MarketplaceRetirementCertificateEscrow contract', () => {
     
       await nftA.mint(owner.address)
       await nftA.approve(marketplace.address, tokenId)
-      
+      await marketplace.connect(owner).toggleNftWhitelistValue(nftA.address)
+
       await expect(marketplace.listItem(nftA.address, tokenId, ETH)).to.not.reverted;
       let listing = await marketplace.getListing(nftA.address, tokenId);
       expect(listing.seller).to.eq(owner.address)
@@ -170,6 +172,7 @@ describe('MarketplaceRetirementCertificateEscrow contract', () => {
       await nftA.approve(marketplace.address, tokenId)
       await nftA.mint(owner.address)
       await nftA.approve(marketplace.address, tokenId2)
+      await marketplace.connect(owner).toggleNftWhitelistValue(nftA.address)
       
       await expect(marketplace.listItem(nftA.address, tokenId, ETH)).to.not.reverted;
       await expect(marketplace.listItem(nftA.address, tokenId2, ETH)).to.not.reverted;
