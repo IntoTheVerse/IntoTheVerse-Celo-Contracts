@@ -221,9 +221,7 @@ contract GreenDonation is
         _totalSupply = _totalSupply.sub(amount);
         _balances[tree] = _balances[tree].sub(amount);
         stakingToken.safeTransfer(msg.sender, amount);
-        noOfTimesStakedForTree[tree] = noOfTimesStakedForTree[tree]--; // Subtract no. of stakes since this is a reward.
         emit Withdrawn(tree, msg.sender, amount);
-        treeContract.downgradeTree(tree, _balances[tree], getMinimumStake());
     }
 
     function _swapRewardTokenForTC02(
