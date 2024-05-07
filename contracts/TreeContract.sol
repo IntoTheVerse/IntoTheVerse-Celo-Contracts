@@ -263,35 +263,6 @@ contract TreeContract is Ownable, ERC721A {
         trees[_tokenId].level = treeLevel;
     }
 
-    function downgradeTree(
-        uint256 _tokenId,
-        uint256 _balance,
-        uint256 minimumStake
-    ) external onlyGreenDonationContract {
-        require(_exists(_tokenId), "Tree does not exist");
-        uint256 minimumNoOfTimesStaked = _balance < minimumStake
-            ? 0
-            : _balance / minimumStake;
-
-        uint256 treeLevel = 0;
-        if (minimumNoOfTimesStaked < 1) {
-            treeLevel = 0;
-        } else if (minimumNoOfTimesStaked > 1 && minimumNoOfTimesStaked <= 5) {
-            treeLevel = 1;
-        } else if (minimumNoOfTimesStaked > 5 && minimumNoOfTimesStaked <= 15) {
-            treeLevel = 2;
-        } else if (
-            minimumNoOfTimesStaked > 15 && minimumNoOfTimesStaked <= 30
-        ) {
-            treeLevel = 3;
-        } else if (minimumNoOfTimesStaked > 30) {
-            treeLevel = 4;
-        }
-
-        trees[_tokenId].lastWatered = block.timestamp;
-        trees[_tokenId].level = treeLevel;
-    }
-
     function _beforeTokenTransfers(
         // With this tree NFT is no longer burnable, transferable. It is only mintable.
         address from,

@@ -189,7 +189,7 @@ describe('GreenDonation contract', () => {
       await expect(greenDonation.withdraw(1, ETH)).to.not.reverted;
       expect(await treeContract.balanceOf(owner.address)).to.eq(1);
       expect(await treeContract.ownerOf(1)).to.eq(owner.address);
-      expect((await treeContract.trees(1)).level).to.eq(0);
+      expect((await treeContract.trees(1)).level).to.eq(1);
       expect(await stakingToken.balanceOf(greenDonation.address)).to.eq(0);
       expect(await stakingToken.balanceOf(owner.address)).to.eq(ETH.mul(10));
     });

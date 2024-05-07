@@ -107,27 +107,11 @@ describe('TreeContract', () => {
       await expect(treeContract.connect(whale).upgradeTree(1, 30)).to.not.reverted;
     });
 
-    it(' - Should downgrade tree if green donation', async () => {
-      const { treeContract, whale, owner, ETH } = await loadFixture(fetchFixtures)
-      await treeContract.mint('', '', 0, Date.now());
-      await expect(treeContract.connect(owner).setGreenDonationContract(whale.address)).to.not.reverted;
-      await expect(treeContract.connect(whale).upgradeTree(1, 25)).to.not.reverted;
-      await expect(treeContract.connect(whale).downgradeTree(1, ETH.mul(6), ETH)).to.not.reverted;
-    });
-
     it(' - Should not upgrade tree if not green donation', async () => {
       const { treeContract, whale, owner, ETH } = await loadFixture(fetchFixtures)
       await treeContract.mint('', '', 0, Date.now());
       expect((await treeContract.trees(1)).level).to.eq(0)
       await expect(treeContract.connect(whale).upgradeTree(1, 15)).revertedWith('Only green donation contract can call this function');
-      expect((await treeContract.trees(1)).level).to.eq(0)
-    });
-
-    it(' - Should not downgrade tree if not green donation', async () => {
-      const { treeContract, whale, owner, ETH } = await loadFixture(fetchFixtures)
-      await treeContract.mint('', '', 0, Date.now());
-      expect((await treeContract.trees(1)).level).to.eq(0)
-      await expect(treeContract.connect(whale).downgradeTree(1, ETH.mul(6), ETH)).rejectedWith('Only green donation contract can call this function')
       expect((await treeContract.trees(1)).level).to.eq(0)
     });
   });
