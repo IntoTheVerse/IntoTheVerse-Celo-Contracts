@@ -217,9 +217,8 @@ contract NftMarketplace is ReentrancyGuard, Ownable {
         delete (s_listings[nftAddress][tokenId]);
         emit ItemCanceled(msg.sender, nftAddress, tokenId);
 
-        IERC721 nft = IERC721(nftAddress);
         // Transfer the NFT from this contract to user to unlock it.
-        nft.transferFrom(address(this), msg.sender, tokenId);
+        IERC721(nftAddress).transferFrom(address(this), msg.sender, tokenId);
         emit ItemUnlocked(msg.sender, msg.sender, nftAddress, tokenId);
     }
 
