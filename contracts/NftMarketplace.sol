@@ -277,7 +277,6 @@ contract NftMarketplace is ReentrancyGuard, Ownable {
             revert PriceNotMet(nftAddress, tokenId, listedItem.price);
         }
 
-        uint256 amountToSwap = (msg.value * redemptionRate) / 100;
         uint256 retirementCertificateTokenId = retirementCertificate
             .mintCertificate(
                 address(this), // Contract will get the certificate.
@@ -285,7 +284,9 @@ contract NftMarketplace is ReentrancyGuard, Ownable {
                 msg.sender, // But, msg.sender will be the beneficiary.
                 "Into The Verse Marketplace beneficiary",
                 "Into The Verse Marketplace retirement",
-                _retireTC02Tokens(_swapForTC02(amountToSwap))
+                _retireTC02Tokens(
+                    _swapForTC02((msg.value * redemptionRate) / 100)
+                )
             );
 
         ERC721Upgradeable(address(retirementCertificate)).approve(
@@ -299,7 +300,8 @@ contract NftMarketplace is ReentrancyGuard, Ownable {
             retirementCertificateTokenId
         );
 
-        s_proceeds[listedItem.seller] += (msg.value - amountToSwap);
+        s_proceeds[listedItem.seller] += (msg.value -
+            ((msg.value * redemptionRate) / 100));
         delete (s_listings[nftAddress][tokenId]);
         IERC721(nftAddress).safeTransferFrom( // Transfer locked asset to user from this contract.
             address(this),
