@@ -267,6 +267,7 @@ contract TreeContract is Ownable, ERC721A {
         uint256 _tokenId
     ) external onlyGreenDonationContract {
         require(_exists(_tokenId), "Tree does not exist");
+        trees[_tokenId].lastWatered = 0;
         trees[_tokenId].level = 0;
     }
 
