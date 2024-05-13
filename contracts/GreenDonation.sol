@@ -227,9 +227,9 @@ contract GreenDonation is
 
         // If withdrawing all balance, downgrade tree level to zero.
         if (_balances[tree] == 0) {
-            treeContract.downgradeTreeToZero(tree);
             lastStakeTimestamp[tree] = 0;
             noOfTimesStakedForTree[tree] = 0;
+            treeContract.downgradeTreeToZero(tree);
         }
     }
 

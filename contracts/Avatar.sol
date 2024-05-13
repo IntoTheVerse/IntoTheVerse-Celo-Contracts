@@ -4,9 +4,9 @@ pragma solidity ^0.8.9;
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
+import {ReentrancyGuard} from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 
-contract Avatar is Ownable, ERC721Enumerable {
-
+contract Avatar is Ownable, ERC721Enumerable, ReentrancyGuard {
     using Strings for uint256;
 
     // baseURI is default avatar image
@@ -31,7 +31,9 @@ contract Avatar is Ownable, ERC721Enumerable {
 
     mapping(address => bool) public _hasMintedAvatar; // Mapping to track whether an address has already
 
-    constructor(string memory baseURI) Ownable(msg.sender) ERC721("AVATAR", "ITVA") {
+    constructor(
+        string memory baseURI
+    ) Ownable(msg.sender) ERC721("AVATAR", "ITVA") {
         setBaseURI(baseURI);
     }
 
@@ -51,17 +53,22 @@ contract Avatar is Ownable, ERC721Enumerable {
         _baseTokenURI = _uri;
     }
 
-    function mint(string memory image) external {
+    function mint(string memory image) external nonReentrant {
         require(!_hasMintedAvatar[msg.sender], "You already have an avatar");
         // Mint new Avatar NFT to the owner
         uint256 tokenId = totalSupply() + 1;
-        _safeMint(msg.sender, tokenId);
+
         _hasMintedAvatar[msg.sender] = true; // Update the mapping to make sure, one avatar per address.
         // Store information about the avatar
         avatars[tokenId] = AvatarInfo(tokenId, image, 0, false, msg.sender);
+
+        _safeMint(msg.sender, tokenId);
     }
 
-    function changeAvatarImage(uint256 tokenId, string memory newImage) external {
+    function changeAvatarImage(
+        uint256 tokenId,
+        string memory newImage
+    ) external {
         // Ensure the caller is the owner of the avatar
         require(msg.sender == avatars[tokenId].ownerAddress, "Not the owner");
 
@@ -86,11 +93,15 @@ contract Avatar is Ownable, ERC721Enumerable {
         avatars[tokenId].isParticipatingInRef = true;
     }
 
-    function isParticipatingInRef(uint256 tokenId) external view returns (bool) {
+    function isParticipatingInRef(
+        uint256 tokenId
+    ) external view returns (bool) {
         return avatars[tokenId].isParticipatingInRef;
     }
 
-    function getEquipments(uint256 tokenId) external view returns (uint256[] memory) {
+    function getEquipments(
+        uint256 tokenId
+    ) external view returns (uint256[] memory) {
         return equipments[tokenId];
     }
 
@@ -98,7 +109,10 @@ contract Avatar is Ownable, ERC721Enumerable {
         equipments[tokenId].push(equipmentId);
     }
 
-    function removeEquipment(uint256 tokenId, uint256 equipmentId) external onlyOwner {
+    function removeEquipment(
+        uint256 tokenId,
+        uint256 equipmentId
+    ) external onlyOwner {
         uint256[] storage equipmentList = equipments[tokenId];
         for (uint256 i = 0; i < equipmentList.length; i++) {
             if (equipmentList[i] == equipmentId) {
@@ -110,7 +124,9 @@ contract Avatar is Ownable, ERC721Enumerable {
         }
     }
 
-    function getBadges(uint256 tokenId) external view returns (uint256[] memory) {
+    function getBadges(
+        uint256 tokenId
+    ) external view returns (uint256[] memory) {
         return badges[tokenId];
     }
 
