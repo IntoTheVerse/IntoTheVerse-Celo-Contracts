@@ -263,6 +263,13 @@ contract TreeContract is Ownable, ERC721A {
         trees[_tokenId].level = treeLevel;
     }
 
+    function downgradeTreeToZero(
+        uint256 _tokenId
+    ) external onlyGreenDonationContract {
+        require(_exists(_tokenId), "Tree does not exist");
+        trees[_tokenId].level = 0;
+    }
+
     function _beforeTokenTransfers(
         // With this tree NFT is no longer burnable, transferable. It is only mintable.
         address from,
