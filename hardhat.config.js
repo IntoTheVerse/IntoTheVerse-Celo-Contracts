@@ -53,7 +53,7 @@ module.exports = {
       { version: "0.8.9", settings: {
         optimizer: {
           enabled: true,
-          runs: 10000
+          runs: 100000
         }
       } },
       { version: "0.8.17", settings: {
