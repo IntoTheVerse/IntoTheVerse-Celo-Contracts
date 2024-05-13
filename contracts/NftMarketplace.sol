@@ -210,7 +210,6 @@ contract NftMarketplace is ReentrancyGuard, Ownable {
         uint256 tokenId
     )
         external
-        isOwner(nftAddress, tokenId, address(this))
         isListed(nftAddress, tokenId)
         isListingOwner(nftAddress, tokenId, msg.sender)
     {
