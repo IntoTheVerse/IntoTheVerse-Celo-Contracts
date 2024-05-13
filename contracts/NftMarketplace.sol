@@ -319,7 +319,6 @@ contract NftMarketplace is ReentrancyGuard, Ownable {
         isListingOwner(nftAddress, tokenId, msg.sender) // Check that msg.sender is owner of listing.
         isListed(nftAddress, tokenId)
         nonReentrant
-        isOwner(nftAddress, tokenId, address(this)) // Now contract is owner (i.e asset is locked)
     {
         if (newPrice == 0) {
             revert PriceMustBeAboveZero();
