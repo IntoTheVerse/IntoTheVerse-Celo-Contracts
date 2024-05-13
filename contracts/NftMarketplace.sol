@@ -72,10 +72,22 @@ contract NftMarketplace is ReentrancyGuard, Ownable {
         uint256 indexed tokenId,
         uint256 price
     );
+    event ItemLocked(
+        address indexed seller,
+        address indexed nftAddress,
+        uint256 indexed tokenId,
+        uint256 price
+    );
     event ItemCanceled(
         address indexed seller,
         address indexed nftAddress,
         uint256 indexed tokenId
+    );
+    event ItemUnlocked(
+        address indexed seller,
+        address indexed buyer,
+        address indexed nftAddress,
+        uint256 tokenId
     );
     event ItemBought(
         address indexed buyer,
@@ -114,6 +126,18 @@ contract NftMarketplace is ReentrancyGuard, Ownable {
         IERC721 nft = IERC721(nftAddress);
         address owner = nft.ownerOf(tokenId);
         if (spender != owner) {
+            revert NotOwner();
+        }
+        _;
+    }
+
+    modifier isListingOwner(
+        address nftAddress,
+        uint256 tokenId,
+        address seller
+    ) {
+        Listing memory listing = s_listings[nftAddress][tokenId];
+        if (listing.seller != seller) {
             revert NotOwner();
         }
         _;
@@ -176,6 +200,9 @@ contract NftMarketplace is ReentrancyGuard, Ownable {
         }
         s_listings[nftAddress][tokenId] = Listing(price, msg.sender);
         emit ItemListed(msg.sender, nftAddress, tokenId, price);
+        // Transfer the NFT to this contract to lock it.
+        nft.safeTransferFrom(msg.sender, address(this), tokenId);
+        emit ItemLocked(msg.sender, nftAddress, tokenId, price);
     }
 
     function cancelListing(
@@ -183,26 +210,34 @@ contract NftMarketplace is ReentrancyGuard, Ownable {
         uint256 tokenId
     )
         external
-        isOwner(nftAddress, tokenId, msg.sender)
+        isOwner(nftAddress, tokenId, address(this))
         isListed(nftAddress, tokenId)
+        isListingOwner(nftAddress, tokenId, msg.sender)
     {
         delete (s_listings[nftAddress][tokenId]);
         emit ItemCanceled(msg.sender, nftAddress, tokenId);
+
+        IERC721 nft = IERC721(nftAddress);
+        // Transfer the NFT from this contract to user to unlock it.
+        nft.transferFrom(address(this), msg.sender, tokenId);
+        emit ItemUnlocked(msg.sender, msg.sender, nftAddress, tokenId);
     }
 
-    function onERC721Received(
-        address,
-        address from,
-        uint256 tokenId,
-        bytes calldata
-    ) external returns (bytes4) {
-        // Only retirement certificates can transfer NFT to this contract.
-        require(
-            msg.sender == address(retirementCertificate),
-            "Not retirement certificate"
-        );
-        return this.onERC721Received.selector;
-    }
+    // NOTE: this is no longer needed, because on listing NFT is transferred from user to this address
+    // so this function can be called by others in my opinion- review required here.
+    // function onERC721Received(
+    //     address,
+    //     address from,
+    //     uint256 tokenId,
+    //     bytes calldata
+    // ) external returns (bytes4) {
+    //     // Only retirement certificates can transfer NFT to this contract.
+    //     require(
+    //         msg.sender == address(retirementCertificate),
+    //         "Not retirement certificate"
+    //     );
+    //     return this.onERC721Received.selector;
+    // }
 
     function _swapForTC02(uint256 amountToSwap) internal returns (uint256) {
         address[] memory path = new address[](2);
@@ -234,6 +269,7 @@ contract NftMarketplace is ReentrancyGuard, Ownable {
     )
         external
         payable
+        isOwner(nftAddress, tokenId, address(this)) // To check that this nft is with contract (i.e locked)
         isListed(nftAddress, tokenId)
         isWhitelistedNft(nftAddress)
         nonReentrant
@@ -267,11 +303,12 @@ contract NftMarketplace is ReentrancyGuard, Ownable {
 
         s_proceeds[listedItem.seller] += (msg.value - amountToSwap);
         delete (s_listings[nftAddress][tokenId]);
-        IERC721(nftAddress).safeTransferFrom(
-            listedItem.seller,
+        IERC721(nftAddress).safeTransferFrom( // Transfer locked asset to user from this contract.
+            address(this),
             msg.sender,
             tokenId
         );
+        emit ItemUnlocked(listedItem.seller, msg.sender, nftAddress, tokenId);
         emit ItemBought(msg.sender, nftAddress, tokenId, listedItem.price);
     }
 
@@ -281,9 +318,10 @@ contract NftMarketplace is ReentrancyGuard, Ownable {
         uint256 newPrice
     )
         external
+        isListingOwner(nftAddress, tokenId, msg.sender) // Check that msg.sender is owner of listing.
         isListed(nftAddress, tokenId)
         nonReentrant
-        isOwner(nftAddress, tokenId, msg.sender)
+        isOwner(nftAddress, tokenId, address(this)) // Now contract is owner (i.e asset is locked)
     {
         if (newPrice == 0) {
             revert PriceMustBeAboveZero();
