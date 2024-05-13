@@ -18,8 +18,9 @@ contract RetirementCertificateEscrow is Ownable, ReentrancyGuard {
     }
 
     address public greenDonation;
+    uint256 public totalTreesRegistered = 0;
 
-    mapping(uint256 => UserRetirementCertificate[])
+    mapping(uint256 => mapping(uint256 => UserRetirementCertificate))
         public userRetirementCertificates;
 
     TreeContract public treeContract;
@@ -73,15 +74,16 @@ contract RetirementCertificateEscrow is Ownable, ReentrancyGuard {
         uint256 tree,
         uint256 _retirementCertificate
     ) external nonReentrant onlyGreenDonationOrTreeContract(msg.sender) {
+        totalTreesRegistered = totalTreesRegistered + 1;
         UserRetirementCertificate
             memory certificate = UserRetirementCertificate({
                 retirementCertificate: _retirementCertificate,
                 claimed: false,
                 tree: tree,
-                index: userRetirementCertificates[tree].length,
+                index: totalTreesRegistered,
                 ownerContract: msg.sender
             });
-        userRetirementCertificates[tree].push(certificate);
+        userRetirementCertificates[tree][totalTreesRegistered] = certificate;
         emit AttachCertificateForClaim(_retirementCertificate, tree);
     }
 
@@ -95,11 +97,7 @@ contract RetirementCertificateEscrow is Ownable, ReentrancyGuard {
         notGreenDonation(msg.sender)
     {
         require(msg.sender != greenDonation, "GreenDonation cannot claim");
-
-        UserRetirementCertificate[]
-            storage certificates = userRetirementCertificates[tree];
-
-        require(certificates.length > 0, "No certificate found");
+        require(totalTreesRegistered > 0, "No certificates found");
         require(
             userRetirementCertificatesIndexes.length > 0,
             "No certificate claim requested"
@@ -110,12 +108,17 @@ contract RetirementCertificateEscrow is Ownable, ReentrancyGuard {
             uint256 index = userRetirementCertificatesIndexes[i];
 
             // Fetch the certificate.
-            UserRetirementCertificate memory certificate = certificates[index];
+            UserRetirementCertificate
+                storage certificate = userRetirementCertificates[tree][index];
             // Validate that the certificate not already claimed.
             require(!certificate.claimed, "Certificate already claimed");
             require(tree == certificate.tree, "Not your tree certificate");
+            require(
+                index == certificate.index,
+                "Not your tree index in registration"
+            );
             // Mark the NFT as claimed/transferred.
-            certificates[index].claimed = true;
+            userRetirementCertificates[tree][index].claimed = true;
             // Transfer the certificate.
             retirementCertificate.safeTransferFrom(
                 certificate.ownerContract,
@@ -130,13 +133,11 @@ contract RetirementCertificateEscrow is Ownable, ReentrancyGuard {
         }
     }
 
-    function getUserRetirementCertificates(
-        uint256 tree
-    ) external view returns (UserRetirementCertificate[] memory, uint256) {
-        UserRetirementCertificate[]
-            memory certificates = userRetirementCertificates[tree];
-
-        return (certificates, certificates.length);
+    function getUserRetirementCertificate(
+        uint256 tree,
+        uint256 index
+    ) external view returns (UserRetirementCertificate memory) {
+        return userRetirementCertificates[tree][index];
     }
 
     event SetTreeContract(address oldTreeContract, address newTreeContract);

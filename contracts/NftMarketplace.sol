@@ -263,9 +263,7 @@ contract NftMarketplace is ReentrancyGuard, Ownable {
 
     function buyItem(
         address nftAddress,
-        uint256 tokenId,
-        string calldata beneficiaryString,
-        string calldata retirementMessage
+        uint256 tokenId
     )
         external
         payable
@@ -285,8 +283,8 @@ contract NftMarketplace is ReentrancyGuard, Ownable {
                 address(this), // Contract will get the certificate.
                 "Into The Verse Marketplace User",
                 msg.sender, // But, msg.sender will be the beneficiary.
-                beneficiaryString,
-                retirementMessage,
+                "Into The Verse Marketplace beneficiary",
+                "Into The Verse Marketplace retirement",
                 _retireTC02Tokens(_swapForTC02(amountToSwap))
             );
 
