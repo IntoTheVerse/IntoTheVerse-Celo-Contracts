@@ -16,8 +16,9 @@ contract MarketplaceRetirementCertificateEscrow is Ownable, ReentrancyGuard {
     }
 
     address public nftMarketplace;
+    uint256 public totalRegistered = 0;
 
-    mapping(bytes => UserRetirementCertificate[])
+    mapping(bytes => mapping(uint256 => UserRetirementCertificate))
         public userRetirementCertificates;
 
     ERC721Upgradeable public retirementCertificate;
@@ -66,16 +67,17 @@ contract MarketplaceRetirementCertificateEscrow is Ownable, ReentrancyGuard {
         uint256 tokenId,
         uint256 _retirementCertificate
     ) external nonReentrant onlyNftMarketplace(msg.sender) {
+        totalRegistered = totalRegistered + 1;
         bytes memory key = abi.encode(nftAddress, tokenId);
         UserRetirementCertificate
             memory certificate = UserRetirementCertificate({
                 retirementCertificate: _retirementCertificate,
                 claimed: false,
                 tokenId: tokenId,
-                index: userRetirementCertificates[key].length,
+                index: totalRegistered,
                 nftAddress: nftAddress
             });
-        userRetirementCertificates[key].push(certificate);
+        userRetirementCertificates[key][totalRegistered] = certificate;
         emit AttachCertificateForClaim(
             _retirementCertificate,
             tokenId,
@@ -94,32 +96,31 @@ contract MarketplaceRetirementCertificateEscrow is Ownable, ReentrancyGuard {
         notNftMarketplace(msg.sender)
     {
         require(msg.sender != nftMarketplace, "Marketplace cannot claim");
-
-        bytes memory key = abi.encode(nftAddress, tokenId);
-        UserRetirementCertificate[]
-            storage certificates = userRetirementCertificates[key];
-
-        require(certificates.length > 0, "No certificate found");
+        require(totalRegistered > 0, "No certificate found");
         require(
             userRetirementCertificatesIndexes.length > 0,
             "No certificate claim requested"
         );
+
+        bytes memory key = abi.encode(nftAddress, tokenId);
 
         for (uint256 i = 0; i < userRetirementCertificatesIndexes.length; i++) {
             // Fetch index.
             uint256 index = userRetirementCertificatesIndexes[i];
 
             // Fetch the certificate.
-            UserRetirementCertificate memory certificate = certificates[index];
+            UserRetirementCertificate
+                storage certificate = userRetirementCertificates[key][index];
             // Validate that the certificate not already claimed.
             require(!certificate.claimed, "Certificate already claimed");
             require(tokenId == certificate.tokenId, "Not your nft");
+            require(index == certificate.index, "Not your nft");
             require(
                 nftAddress == certificate.nftAddress,
                 "Not correct NFT address"
             );
             // Mark the NFT as claimed/transferred.
-            certificates[index].claimed = true;
+            userRetirementCertificates[key][index].claimed = true;
             // Transfer the certificate.
             retirementCertificate.safeTransferFrom(
                 nftMarketplace,
@@ -135,14 +136,13 @@ contract MarketplaceRetirementCertificateEscrow is Ownable, ReentrancyGuard {
         }
     }
 
-    function getUserRetirementCertificates(
+    function getUserRetirementCertificate(
         address nftAddress,
-        uint256 tokenId
-    ) external view returns (UserRetirementCertificate[] memory, uint256) {
+        uint256 tokenId,
+        uint256 index
+    ) external view returns (UserRetirementCertificate memory) {
         bytes memory key = abi.encode(nftAddress, tokenId);
-        UserRetirementCertificate[]
-            memory certificates = userRetirementCertificates[key];
-        return (certificates, certificates.length);
+        return userRetirementCertificates[key][index];
     }
 
     event AttachCertificateForClaim(

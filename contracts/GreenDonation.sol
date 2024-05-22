@@ -218,10 +218,19 @@ contract GreenDonation is
         uint256 amount
     ) public nonReentrant updateReward(tree) onlyTreeOwner(tree, msg.sender) {
         require(amount > 0, "Cannot withdraw 0");
+        require(amount <= _balances[tree], "Withdraw > Balance");
+
         _totalSupply = _totalSupply.sub(amount);
         _balances[tree] = _balances[tree].sub(amount);
         stakingToken.safeTransfer(msg.sender, amount);
         emit Withdrawn(tree, msg.sender, amount);
+
+        // If withdrawing all balance, downgrade tree level to zero.
+        if (_balances[tree] == 0) {
+            lastStakeTimestamp[tree] = 0;
+            noOfTimesStakedForTree[tree] = 0;
+            treeContract.downgradeTreeToZero(tree);
+        }
     }
 
     function _swapRewardTokenForTC02(
