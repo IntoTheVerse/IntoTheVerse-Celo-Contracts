@@ -41,11 +41,6 @@ contract RetirementCertificateEscrow is Ownable, ReentrancyGuard {
         _;
     }
 
-    modifier notGreenDonation(address caller) {
-        require(caller != greenDonation, "Caller GreenDonation");
-        _;
-    }
-
     function setGreenDonation(
         address _greenDonation
     ) external onlyOwner nonReentrant {
@@ -94,7 +89,6 @@ contract RetirementCertificateEscrow is Ownable, ReentrancyGuard {
         external
         nonReentrant
         onlyTreeOwner(tree, msg.sender)
-        notGreenDonation(msg.sender)
     {
         require(msg.sender != greenDonation, "GreenDonation cannot claim");
         require(totalTreesRegistered > 0, "No certificates found");

@@ -40,11 +40,6 @@ contract MarketplaceRetirementCertificateEscrow is Ownable, ReentrancyGuard {
         _;
     }
 
-    modifier notNftMarketplace(address caller) {
-        require(caller != nftMarketplace, "Caller NFTMarketplace");
-        _;
-    }
-
     function setNFTMarketplace(
         address _marketplace
     ) external onlyOwner nonReentrant {
@@ -93,7 +88,6 @@ contract MarketplaceRetirementCertificateEscrow is Ownable, ReentrancyGuard {
         external
         nonReentrant
         onlyNFTOwner(nftAddress, tokenId, msg.sender)
-        notNftMarketplace(msg.sender)
     {
         require(msg.sender != nftMarketplace, "Marketplace cannot claim");
         require(totalRegistered > 0, "No certificate found");
