@@ -30,6 +30,10 @@ main().catch((error) => {
     process.exitCode = 1;
 });
 
+// Deploying contracts with the account: 0xbE8Ace29e3022CD6841821315F82a6C2484fE585
+// Account balance: 1201538500000000000
+// Avatar contract deployed to: 0xfF2Fe75A7f5C1E39B3B0D89837f780c9B9945F84
+
 
 // const path = require("path");
 

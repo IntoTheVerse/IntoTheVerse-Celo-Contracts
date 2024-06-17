@@ -17,3 +17,6 @@ main().catch((error) => {
     console.error(error);
     process.exitCode = 1;
 });
+
+// Deploying contracts with the account: 0xbE8Ace29e3022CD6841821315F82a6C2484fE585
+// Token deployed to: 0xB20f3CAE3Dad0b59b04AF54dCB786A1d1fD1b67b
