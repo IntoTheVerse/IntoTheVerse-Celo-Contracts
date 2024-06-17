@@ -20,7 +20,7 @@ error NoProceeds();
 error NotOwner();
 error NotApprovedForMarketplace();
 error PriceMustBeAboveZero();
-error NFTNotWhilelisted(address nftAddress);
+error NFTNotWhitelisted(address nftAddress);
 
 contract NftMarketplace is ReentrancyGuard, Ownable {
     struct Listing {
@@ -38,7 +38,7 @@ contract NftMarketplace is ReentrancyGuard, Ownable {
 
     event SetRedemptionRate(uint256 oldRate, uint256 rate);
     event SetRetirementCertificateEscrow(address oldEscrow, address newEscrow);
-    event SetSwapRouter(address swapRouter, address newSwapRouter);
+    event SetSwapRouter(address oldRouter, address newRouter);
     event SetNftWhitelistValue(
         address nftAddress,
         bool oldValue,
@@ -102,7 +102,7 @@ contract NftMarketplace is ReentrancyGuard, Ownable {
 
     modifier isWhitelistedNft(address nftAddress) {
         if (!whitelistedNfts[nftAddress]) {
-            revert NFTNotWhilelisted(nftAddress);
+            revert NFTNotWhitelisted(nftAddress);
         }
         _;
     }
@@ -150,7 +150,7 @@ contract NftMarketplace is ReentrancyGuard, Ownable {
         }
         _;
     }
-
+    
     function setRedemptionRate(uint256 _rate) external nonReentrant onlyOwner {
         emit SetRedemptionRate(redemptionRate, _rate);
         redemptionRate = _rate;
@@ -221,21 +221,21 @@ contract NftMarketplace is ReentrancyGuard, Ownable {
         emit ItemUnlocked(msg.sender, msg.sender, nftAddress, tokenId);
     }
 
-    // NOTE: this is no longer needed, because on listing NFT is transferred from user to this address
-    // so this function can be called by others in my opinion- review required here.
-    // function onERC721Received(
-    //     address,
-    //     address from,
-    //     uint256 tokenId,
-    //     bytes calldata
-    // ) external returns (bytes4) {
-    //     // Only retirement certificates can transfer NFT to this contract.
-    //     require(
-    //         msg.sender == address(retirementCertificate),
-    //         "Not retirement certificate"
-    //     );
-    //     return this.onERC721Received.selector;
-    // }
+        // NOTE: this is no longer needed, because on listing NFT is transferred from user to this address
+        // so this function can be called by others in my opinion- review required here.
+        // function onERC721Received(
+        //     address,
+        //     address from,
+        //     uint256 tokenId,
+        //     bytes calldata
+        // ) external returns (bytes4) {
+        //     // Only retirement certificates can transfer NFT to this contract.
+        //     require(
+        //         msg.sender == address(retirementCertificate),
+        //         "Not retirement certificate"
+        //     );
+        //     return this.onERC721Received.selector;
+        // }
 
     function _swapForTC02(uint256 amountToSwap) internal returns (uint256) {
         address[] memory path = new address[](2);
@@ -243,7 +243,7 @@ contract NftMarketplace is ReentrancyGuard, Ownable {
         path[1] = address(tc02);
         uint256[] memory amountSwapped = swapRouter.swapExactTokensForTokens(
             amountToSwap,
-            0, // TOOD: use proper method to fetch amount for TC02 to avoid slippage.
+            0, // TODO: use proper method to fetch amount for TC02 to avoid slippage.
             path,
             address(this),
             block.timestamp
