@@ -268,7 +268,8 @@ need to have [Coinbase Wallet](https://www.coinbase.com/wallet) or [Metamask](ht
 
 ## Functionality Explanation
  
- Into the Verse Protocol
+MetaMeadow Boomtown Protocol
+
 TreeContract:
 ● This is the protocol NFT.
 ● setGreenDonationContract(address _greenDonationContract):

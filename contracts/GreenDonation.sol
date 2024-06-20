@@ -234,24 +234,23 @@ contract GreenDonation is
     }
 
     function _swapRewardTokenForTC02(
-    uint256 rewardsAmountToSwap,
-    uint256 minOut,
-    uint256 deadline
-) internal returns (uint256) {
-    require(deadline > block.timestamp, "Deadline must be greater than current timestamp");
-
-    address[] memory path = new address[](2);
-    path[0] = address(rewardsToken);
-    path[1] = address(tc02);
-    uint256[] memory amountSwapped = swapRouter.swapExactTokensForTokens(
-        rewardsAmountToSwap,
-        minOut,
-        path,
-        address(this),
-        deadline
-    );
-    return amountSwapped[amountSwapped.length - 1];
-}
+        uint256 rewardsAmountToSwap,
+        uint256 minOut,
+        uint256 deadline
+    ) internal returns (uint256) {
+        require(deadline > block.timestamp, "Deadline must be greater than current timestamp");
+        address[] memory path = new address[](2);
+        path[0] = address(rewardsToken);
+        path[1] = address(tc02);
+        uint256[] memory amountSwapped = swapRouter.swapExactTokensForTokens(
+            rewardsAmountToSwap,
+            minOut,
+            path,
+            address(this),
+            deadline
+        );
+        return amountSwapped[amountSwapped.length - 1];
+    }
 
 
     function _retireTC02Tokens(
@@ -286,10 +285,10 @@ contract GreenDonation is
             uint256 retirementCertificateTokenId = retirementCertificate
                 .mintCertificate(
                     address(this), // Contract will get the certificate.
-                    "Into The Verse Green Donation User",
+                    "IntoTheVerse Green Donation User",
                     msg.sender, // But, msg.sender will be the beneficiary.
-                    "Into The Vesre Green Donation Beneficiary",
-                    "Into the Verse Green Donation Retirement",
+                    "IntoTheVesre Green Donation Beneficiary",
+                    "IntoTheVerse Green Donation Retirement",
                     _retireTC02Tokens(
                         _swapRewardTokenForTC02(
                             rewardsToSwapForTC02,

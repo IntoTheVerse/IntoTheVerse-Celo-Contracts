@@ -154,6 +154,7 @@ contract TreeContract is Ownable, ERC721A {
         uint256 minAmountOut,
         uint256 deadline
     ) internal returns (uint256) {
+        require(deadline > block.timestamp, "Deadline must be greater than current timestamp");
         address[] memory path = new address[](2);
         path[0] = address(wrappedNativeToken);
         path[1] = address(tc02);
@@ -195,7 +196,7 @@ contract TreeContract is Ownable, ERC721A {
         uint256 retirementCertificateTokenId = retirementCertificates
             .mintCertificate(
                 address(this), // Contract will get the certificate.
-                "Into The Verse Tree User",
+                "IntoTheVerse Tree User",
                 msg.sender, // But, msg.sender will be the beneficiary.
                 beneficiaryString,
                 retirementMessage,
