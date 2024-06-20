@@ -234,22 +234,25 @@ contract GreenDonation is
     }
 
     function _swapRewardTokenForTC02(
-        uint256 rewardsAmountToSwap,
-        uint256 minOut,
-        uint256 deadline
-    ) internal returns (uint256) {
-        address[] memory path = new address[](2);
-        path[0] = address(rewardsToken);
-        path[1] = address(tc02);
-        uint256[] memory amountSwapped = swapRotuer.swapExactTokensForTokens(
-            rewardsAmountToSwap,
-            minOut,
-            path,
-            address(this),
-            deadline
-        );
-        return amountSwapped[amountSwapped.length - 1];
-    }
+    uint256 rewardsAmountToSwap,
+    uint256 minOut,
+    uint256 deadline
+) internal returns (uint256) {
+    require(deadline > block.timestamp, "Deadline must be greater than current timestamp");
+
+    address[] memory path = new address[](2);
+    path[0] = address(rewardsToken);
+    path[1] = address(tc02);
+    uint256[] memory amountSwapped = swapRouter.swapExactTokensForTokens(
+        rewardsAmountToSwap,
+        minOut,
+        path,
+        address(this),
+        deadline
+    );
+    return amountSwapped[amountSwapped.length - 1];
+}
+
 
     function _retireTC02Tokens(
         uint256 amountToRetire
