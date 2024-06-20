@@ -39,6 +39,16 @@ contract TreeContract is Ownable, ERC721A {
     IRetirementCertificates public retirementCertificates;
     RetirementCertificateEscrow public retirementCertificateEscrow;
 
+    // Define events in the smart contract (TreeContract.sol)
+    event GreenDonationContractSet(address indexed greenDonationContract);
+    event RedemptionRateSet(uint256 rate);
+    event SwapRouterSet(address indexed router);
+    event RetirementCertificateEscrowSet(address indexed escrow);
+    event CostSet(uint256 cost);
+    event Withdrawal(address indexed owner, uint256 amount);
+    event TreeUpgraded(uint256 indexed tokenId, uint256 level);
+    event TreeDowngradedToZero(uint256 indexed tokenId);
+
     constructor(
         string memory baseURI,
         address _tc02,
@@ -71,14 +81,17 @@ contract TreeContract is Ownable, ERC721A {
         address _greenDonationContract
     ) external onlyOwner {
         greenDonationContract = _greenDonationContract;
+        emit GreenDonationContractSet(_greenDonationContract);
     }
 
     function setRedemptionRate(uint256 _rate) external onlyOwner {
         redemptionRate = _rate;
+        emit RedemptionRateSet(_rate);
     }
 
     function setSwapRouter(address router) external onlyOwner {
         swapRouter = IUniswapV2Router02(router);
+        emit SwapRouterSet(router);
     }
 
     function setRetirementCertificateEscrow(
@@ -87,6 +100,7 @@ contract TreeContract is Ownable, ERC721A {
         retirementCertificateEscrow = RetirementCertificateEscrow(
             _retirementCertificateEscrow
         );
+        emit RetirementCertificateEscrowSet(_retirementCertificateEscrow);
     }
 
     /**
@@ -102,6 +116,7 @@ contract TreeContract is Ownable, ERC721A {
      */
     function setCost(uint256 _cost) external onlyOwner {
         cost = _cost;
+        emit CostSet(_cost);
     }
 
     /**
@@ -233,6 +248,7 @@ contract TreeContract is Ownable, ERC721A {
         uint256 amount = address(this).balance;
         (bool sent, ) = payable(owner()).call{value: amount}("");
         require(sent, "Failed to send Ether");
+        emit Withdrawal(owner(), amount);
     }
 
     //return last watered timestamp
@@ -261,6 +277,7 @@ contract TreeContract is Ownable, ERC721A {
 
         trees[_tokenId].lastWatered = block.timestamp;
         trees[_tokenId].level = treeLevel;
+        emit TreeUpgraded(_tokenId, treeLevel);
     }
 
     function downgradeTreeToZero(
@@ -269,6 +286,7 @@ contract TreeContract is Ownable, ERC721A {
         require(_exists(_tokenId), "Tree does not exist");
         trees[_tokenId].lastWatered = 0;
         trees[_tokenId].level = 0;
+        emit TreeDowngradedToZero(_tokenId);
     }
 
     function _beforeTokenTransfers(
