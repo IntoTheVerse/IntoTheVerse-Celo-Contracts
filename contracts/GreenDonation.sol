@@ -238,7 +238,7 @@ contract GreenDonation is
         uint256 minOut,
         uint256 deadline
     ) internal returns (uint256) {
-    require(deadline > block.timestamp, "Deadline must be greater than current timestamp");
+        require(deadline > block.timestamp, "Deadline must be greater than current timestamp");
         address[] memory path = new address[](2);
         path[0] = address(rewardsToken);
         path[1] = address(tc02);
