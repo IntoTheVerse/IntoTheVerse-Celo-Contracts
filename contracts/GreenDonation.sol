@@ -285,10 +285,10 @@ contract GreenDonation is
             uint256 retirementCertificateTokenId = retirementCertificate
                 .mintCertificate(
                     address(this), // Contract will get the certificate.
-                    "Into The Verse Green Donation User",
+                    "IntoTheVerse Green Donation User",
                     msg.sender, // But, msg.sender will be the beneficiary.
-                    "Into The Vesre Green Donation Beneficiary",
-                    "Into the Verse Green Donation Retirement",
+                    "IntoTheVesre Green Donation Beneficiary",
+                    "IntoTheVerse Green Donation Retirement",
                     _retireTC02Tokens(
                         _swapRewardTokenForTC02(
                             rewardsToSwapForTC02,

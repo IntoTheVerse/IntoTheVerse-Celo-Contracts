@@ -196,7 +196,7 @@ contract TreeContract is Ownable, ERC721A {
         uint256 retirementCertificateTokenId = retirementCertificates
             .mintCertificate(
                 address(this), // Contract will get the certificate.
-                "Into The Verse Tree User",
+                "IntoTheVerse Tree User",
                 msg.sender, // But, msg.sender will be the beneficiary.
                 beneficiaryString,
                 retirementMessage,
